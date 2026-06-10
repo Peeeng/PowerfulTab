@@ -1,0 +1,116 @@
+## 04 · 隐私政策正文
+
+> 部署到 GitHub Pages 后即得公开 URL，填到 Dev Console "隐私政策" 字段。  
+> 部署步骤见本文末尾。
+
+---
+
+# PowerfulTab 隐私政策
+
+**最后更新：2026-10-29**
+
+PowerfulTab（"我们"、"本扩展"）尊重并保护所有用户的个人隐私。本隐私政策说明了 PowerfulTab 在你使用过程中如何处理数据。
+
+---
+
+## 1. 数据仅在本地处理，不上传
+
+PowerfulTab 是一个**纯本地运行**的浏览器扩展。我们：
+
+- **不会** 收集你的个人身份信息
+- 为分组、搜索、排序及标签操作，在本地读取打开标签的 URL、标题、图标和活动状态；这些数据**不会上传给我们或第三方**
+- **不会** 上传任何数据到任何服务器
+- **不会** 与任何第三方共享数据
+- **不会** 使用数据进行广告投放或信用评估
+
+---
+
+## 2. 本地存储的数据
+
+为了让扩展正常工作，以下数据会保存在 `chrome.storage.local`（**仅你本机的 Chrome 配置内**）：
+
+| 数据类型 | 用途 | 是否离开你的设备 |
+| --- | --- | --- |
+| 白名单域名列表 | 按 Path 整理时，让指定域名仅按域名分组 | 否 |
+| URL 保护白名单 | 让指定 URL 不参与整理和去重 | 否 |
+| 主题偏好（浅色/深色） | UI 渲染 | 否 |
+| 整理方式、最多分组数、最少标签数、组内排序偏好 | 标签分组与列表展示 | 否 |
+| 搜索框保留数与搜索关键词历史 | 展示最近搜索；保留数设为 0 时不保留历史 | 否 |
+| 各标签创建时间戳（首次记录时间） | 按创建时间排序 | 否 |
+| 各标签最近访问时间戳 | 排序与显示相对时间 | 否 |
+
+此外，`chrome.storage.session` 临时保存各窗口的活动标签 ID 历史，用于新标签继承当前分组，不会上传到服务器。
+
+你可以随时在 `chrome://extensions/` 卸载 PowerfulTab，扩展保存的本地数据将被一并清除。
+
+---
+
+## 3. 我们使用的 Chrome 权限
+
+| 权限 | 用途 |
+| --- | --- |
+| `tabs` | 在本地读取标签 URL/title/favicon 用于分组与去重 |
+| `tabGroups` | 按域名或一级 Path 管理 Chrome 原生标签组 |
+| `sessions` | 实现"撤销关闭"功能 |
+| `storage` | 本地保存上述偏好 |
+| `sidePanel` | 在侧边栏显示主界面 |
+| `favicon` | 拉取站点图标显示在标签卡片上 |
+
+**所有权限仅用于本地标签管理，不涉及任何远程数据传输。**
+
+---
+
+## 4. 网络请求
+
+PowerfulTab 不会主动发起任何网络请求。
+（站点 favicon 由 Chrome 内置 `chrome://favicon/` 提供，不经过我们任何服务器。）
+
+---
+
+## 5. 第三方服务
+
+PowerfulTab 不集成任何分析、统计、广告或追踪 SDK。
+
+---
+
+## 6. 儿童隐私
+
+PowerfulTab 不针对 13 岁以下儿童收集数据。
+
+---
+
+## 7. 政策更新
+
+本政策若有更新，将在本项目 GitHub 仓库的隐私政策页面发布。
+
+---
+
+## 8. 联系我们
+
+- GitHub Issues: https://github.com/Peeeng/PowerfulTab/issues
+- Email: Peeeng520@gmail.com
+
+---
+
+## 部署到 GitHub Pages 步骤
+
+仓库已包含独立的 `docs/privacy.md` 政策正文。不要将本发布说明整篇复制过去，以免把部署命令也发布到政策页面。确认正文准确后提交并推送：
+
+```bash
+git add docs/
+git commit -m "docs: add privacy policy"
+git push
+```
+
+然后到 GitHub 仓库 → **Settings → Pages**：
+- **Source**: `Deploy from a branch`
+- **Branch**: `main` / 目录选 `/docs`
+- 保存后等约 1 分钟
+
+预期 URL（需部署成功后验证可公开访问，无登录要求）：
+
+```
+https://peeeng.github.io/PowerfulTab/privacy
+```
+
+把这个 URL 粘到 Dev Console "隐私政策 URL" 字段。

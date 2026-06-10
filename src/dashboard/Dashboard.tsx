@@ -1,0 +1,312 @@
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import type {
+  LastAccessedMap,
+  RuntimeMessage,
+  RuntimeResponse,
+  Settings,
+  TabInfo,
+  Theme,
+} from '../core/types';
+import { getCreatedAtMap, getSettings, setSettings } from '../core/storage';
+import { queryAllTabs } from '../core/tabs';
+import { activateTab } from '../core/activate-tab';
+import Toolbar from './components/Toolbar';
+import CardGrid from './components/CardGrid';
+import SettingsDialog from '../components/SettingsDialog';
+import MoveTabDialog from '../components/MoveTabDialog';
+import TabSearch from './components/TabSearch';
+import './dashboard.css';
+
+function send<T>(msg: RuntimeMessage): Promise<RuntimeResponse<T>> {
+  return new Promise((resolve) => {
+    chrome.runtime.sendMessage(msg, (resp: RuntimeResponse<T>) => {
+      if (chrome.runtime.lastError) {
+        resolve({ ok: false, error: chrome.runtime.lastError.message });
+        return;
+      }
+      resolve(resp);
+    });
+  });
+}
+
+interface UndoState {
+  count: number;
+  /** Chrome session id list to restore via chrome.sessions.restore */
+  sessionIds: string[];
+}
+
+export default function Dashboard(): JSX.Element {
+  const [settings, setSettingsState] = useState<Settings | null>(null);
+  const [tabs, setTabs] = useState<TabInfo[]>([]);
+  const [lastAccessed, setLastAccessed] = useState<LastAccessedMap>({});
+  const [createdAt, setCreatedAt] = useState<LastAccessedMap>({});
+  const [focusedWindowId, setFocusedWindowId] = useState<number>();
+  const [busy, setBusy] = useState(false);
+  const [hint, setHint] = useState<string>('');
+  const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
+  const [undo, setUndo] = useState<UndoState | null>(null);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [movingTab, setMovingTab] = useState<TabInfo | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [orderRevision, setOrderRevision] = useState(0);
+
+  const undoTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const listRef = useRef<HTMLElement>(null);
+  const listScrollTop = useRef(0);
+  const refreshVersion = useRef(0);
+  const currentWindowId = useRef<number>();
+  const latestActiveTabs = useRef(new Map<number, number>());
+
+  useLayoutEffect(() => {
+    // 行顺序不随激活改变；仍保留刷新前的滚动位置。
+    if (listRef.current) listRef.current.scrollTop = listScrollTop.current;
+  }, [tabs, lastAccessed, createdAt, focusedWindowId]);
+
+  const refresh = async (resetOrder = false): Promise<void> => {
+    const version = ++refreshVersion.current;
+    const [s, list, r, created, focused] = await Promise.all([
+      getSettings(),
+      queryAllTabs(),
+      send<LastAccessedMap>({ type: 'getLastAccessed' }),
+      getCreatedAtMap(),
+      chrome.windows.getLastFocused(),
+    ]);
+    // Ignore older queries that completed after a newer event/refresh.
+    if (version !== refreshVersion.current) return;
+    setSettingsState(s);
+    setTabs(list.map((tab) => {
+      const activeId = latestActiveTabs.current.get(tab.windowId);
+      return activeId == null ? tab : { ...tab, active: tab.id === activeId };
+    }));
+    if (r.ok && r.data) setLastAccessed(r.data);
+    setCreatedAt(created);
+    setFocusedWindowId(focused.id);
+    if (resetOrder) setOrderRevision((value) => value + 1);
+  };
+
+  useEffect(() => {
+    void chrome.windows.getCurrent().then((window) => { currentWindowId.current = window.id; });
+    void refresh();
+    const handler = (): void => {
+      void refresh();
+    };
+    chrome.tabs.onCreated.addListener(handler);
+    chrome.tabs.onRemoved.addListener(handler);
+    chrome.tabs.onUpdated.addListener(handler);
+    chrome.tabs.onMoved.addListener(handler);
+    chrome.tabs.onAttached.addListener(handler);
+    chrome.tabs.onDetached.addListener(handler);
+    const onActivated = ({ tabId, windowId }: chrome.tabs.TabActiveInfo): void => {
+      latestActiveTabs.current.set(windowId, tabId);
+      setTabs((previous) => previous.map((tab) => tab.windowId === windowId
+        ? { ...tab, active: tab.id === tabId }
+        : tab));
+    };
+    const onWindowFocus = (windowId: number): void => {
+      if (windowId !== chrome.windows.WINDOW_ID_NONE) setFocusedWindowId(windowId);
+    };
+    chrome.tabs.onActivated.addListener(onActivated);
+    chrome.windows.onFocusChanged.addListener(onWindowFocus);
+
+    // background 写入 lastAccessed → 通过 storage 变化感知，立刻拉新
+    const onStorageChange = (
+      changes: { [key: string]: chrome.storage.StorageChange },
+      area: string,
+    ): void => {
+      if (area !== 'local') return;
+      if (changes['powerfultab.lastAccessed']) {
+        setLastAccessed((changes['powerfultab.lastAccessed'].newValue as LastAccessedMap | undefined) ?? {});
+      }
+      if (changes['powerfultab.settings']) void refresh();
+    };
+    chrome.storage.onChanged.addListener(onStorageChange);
+
+    // 定时兜底：让相对时间（"5m / 2h"）随时间推进而重渲染
+    const tick = setInterval(() => {
+      void refresh();
+    }, 30_000);
+
+    return () => {
+      chrome.tabs.onCreated.removeListener(handler);
+      chrome.tabs.onRemoved.removeListener(handler);
+      chrome.tabs.onUpdated.removeListener(handler);
+      chrome.tabs.onMoved.removeListener(handler);
+      chrome.tabs.onAttached.removeListener(handler);
+      chrome.tabs.onDetached.removeListener(handler);
+      chrome.tabs.onActivated.removeListener(onActivated);
+      chrome.windows.onFocusChanged.removeListener(onWindowFocus);
+      chrome.storage.onChanged.removeListener(onStorageChange);
+      clearInterval(tick);
+    };
+  }, []);
+
+
+  // Auto-clear undo toast after 5s.
+  useEffect(() => {
+    if (!undo) return;
+    undoTimerRef.current = setTimeout(() => setUndo(null), 5000);
+    return () => {
+      if (undoTimerRef.current) clearTimeout(undoTimerRef.current);
+    };
+  }, [undo]);
+
+  const tabIds = useMemo(() => new Set(tabs.map((t) => t.id)), [tabs]);
+  void tabIds;
+
+  if (!settings) {
+    return <div className="powerful-dash powerful-dash--loading">加载中…</div>;
+  }
+
+  const themeClass = settings.theme === 'dark' ? 'powerful-dark' : 'powerful-light';
+  const pathDomainWhitelist = new Set(settings.pathDomainWhitelist);
+
+  const apply = async (patch: Partial<Settings>): Promise<void> => {
+    const next = await setSettings(patch);
+    setSettingsState(next);
+  };
+
+
+  /** Close tabs with undo support: capture session IDs after Chrome closes them. */
+  const closeWithUndo = async (ids: number[]): Promise<void> => {
+    if (ids.length === 0) return;
+    await chrome.tabs.remove(ids);
+    // Sessions API needs a beat to populate.
+    await new Promise((r) => setTimeout(r, 60));
+    let sessionIds: string[] = [];
+    try {
+      const sessions = await chrome.sessions.getRecentlyClosed({ maxResults: ids.length });
+      sessionIds = sessions
+        .map((s) => s.tab?.sessionId)
+        .filter((x): x is string => typeof x === 'string')
+        .slice(0, ids.length);
+    } catch {
+      sessionIds = [];
+    }
+    setUndo({ count: ids.length, sessionIds });
+    void refresh();
+  };
+
+  const restoreUndo = async (): Promise<void> => {
+    if (!undo) return;
+    for (const sid of undo.sessionIds) {
+      try {
+        await chrome.sessions.restore(sid);
+      } catch {
+        /* ignore individual restore failures */
+      }
+    }
+    setUndo(null);
+    void refresh();
+  };
+
+  const onOrganize = async (): Promise<void> => {
+    setBusy(true);
+    setHint('整理中…');
+    const r = await send<{ closed: number; grouped: number; groupsCreated: number }>({
+      type: 'organizeAll',
+    });
+    setBusy(false);
+    if (r.ok && r.data) {
+      setHint(`已分组 ${r.data.grouped} 个标签 · ${r.data.groupsCreated} 个组`);
+    } else {
+      setHint(`失败：${r.error ?? 'unknown'}`);
+    }
+    void refresh(true);
+  };
+
+  const onDedupe = async (): Promise<void> => {
+    setBusy(true);
+    setHint('去重中…');
+    const r = await send<{ closed: number }>({ type: 'dedupeOnly' });
+    setBusy(false);
+    setHint(r.ok && r.data ? `已关闭完全重复 ${r.data.closed} 个` : `失败：${r.error ?? 'unknown'}`);
+    void refresh();
+  };
+
+  const onActivate = (tab: TabInfo): void => {
+    listScrollTop.current = listRef.current?.scrollTop ?? 0;
+    void activateTab(tab, currentWindowId.current ?? focusedWindowId)
+      .catch(() => setHint('切换标签失败'));
+  };
+
+  const onDuplicate = (tab: TabInfo): void => {
+    void chrome.tabs.duplicate(tab.id).then(() => refresh()).catch(() => setHint('复制标签失败'));
+  };
+
+  const onToggleCollapse = (key: string): void => {
+    setCollapsed((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  };
+
+  // No more confirm dialog — single source of close action goes straight to undoable close.
+  const onClose = (ids: number[]): void => {
+    void closeWithUndo(ids);
+  };
+
+  const onCloseGroup = (_hostname: string, ids: number[]): void => {
+    void closeWithUndo(ids);
+  };
+
+  return (
+    <div className={`powerful-dash ${themeClass}`}>
+      <Toolbar
+        busy={busy}
+        hint={hint}
+        theme={settings.theme}
+        onTheme={(t: Theme) => void apply({ theme: t })}
+        onOrganize={onOrganize}
+        onDedupe={onDedupe}
+        onSettings={() => setSettingsOpen(true)}
+      />
+
+      {settingsOpen && <SettingsDialog settings={settings} onSave={apply} onClose={() => setSettingsOpen(false)} />}
+      {movingTab && <MoveTabDialog tab={movingTab} onClose={() => setMovingTab(null)} onMoved={() => {
+        setHint('已移动标签');
+        void refresh();
+      }} />}
+
+      <TabSearch query={searchQuery} onQuery={setSearchQuery} historyCount={settings.searchHistoryCount} />
+
+      <main ref={listRef} className="powerful-dash__main" onScroll={(e) => { listScrollTop.current = e.currentTarget.scrollTop; }}>
+        <CardGrid
+          tabs={tabs}
+          searchQuery={searchQuery}
+          lastAccessed={lastAccessed}
+          createdAt={createdAt}
+          groupTabSort={settings.groupTabSort}
+          orderRevision={orderRevision}
+          focusedWindowId={focusedWindowId}
+          groupByFirstPath={settings.groupMode === 'path'}
+          pathDomainWhitelist={pathDomainWhitelist}
+          maxGroupCount={settings.maxGroupCount}
+          minGroupTabs={settings.minGroupTabs}
+          collapsed={collapsed}
+          onToggleCollapse={onToggleCollapse}
+          onActivate={onActivate}
+          onDuplicate={onDuplicate}
+          onMove={(tab) => {
+            listScrollTop.current = listRef.current?.scrollTop ?? 0;
+            setMovingTab(tab);
+          }}
+          onClose={onClose}
+          onCloseGroup={onCloseGroup}
+        />
+      </main>
+
+      {undo && (
+        <div className="powerful-toast" role="status" aria-live="polite">
+          <span className="powerful-toast__msg">已关闭 {undo.count} 个标签</span>
+          {undo.sessionIds.length > 0 && (
+            <button className="powerful-toast__action" onClick={() => void restoreUndo()}>
+              撤销
+            </button>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
