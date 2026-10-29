@@ -12,7 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - 🪟 **重复分组消失**：每次「一键整理」会先把目标标签从旧组解绑，再统一建新组，杜绝并排出现多个同名 chip（如 `[lark][其他][lark]`）的问题
 - 🧷 **整理后跨域污染**：调整了"去重 → 排序 → 分组"的顺序（之前 sort 会把 github 插进 aidp 组），现在同域名 tab 永远只会归到自己的组
-- 🔗 **manifest `homepage_url`** 修正为正确的仓库地址 `xionglay34-prog/CosmoTab`
+- 🔗 **manifest `homepage_url`** 修正为正确的仓库地址 `Peeeng/PowerfulTab`
 
 ### Changed
 - 🎨 **配色改为淡色系**：分组颜色限定在 `blue · cyan · pink · purple` 四种柔和色，移除高饱和的 red / yellow / green，`grey` 留给特殊用途
@@ -47,7 +47,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - ❌ **单标签关闭**：卡片尾部 hover 才显示 ×，不与时间戳重叠
 - 🎨 **品牌资产**：iOS 风蓝色文件夹 + sparkle 扩展图标
 - 🐱 **手绘趴猫 + GSAP 3D 视差**：工具栏的细节交互
-- 🔒 **隐私政策**：100% 本地运行，零数据收集（[查看](https://xionglay34-prog.github.io/CosmoTab/privacy)）
+- 🔒 **隐私政策**：100% 本地运行，零数据收集（[查看](https://peeeng.github.io/PowerfulTab/privacy)）
 
 ### Tech
 - Manifest V3 + Service Worker
@@ -62,5 +62,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-[0.1.1]: https://github.com/xionglay34-prog/CosmoTab/releases/tag/v0.1.1
-[0.1.0]: https://github.com/xionglay34-prog/CosmoTab/releases/tag/v0.1.0
+[0.1.1]: https://github.com/Peeeng/PowerfulTab/releases/tag/v0.1.1
+[0.1.0]: https://github.com/Peeeng/PowerfulTab/releases/tag/v0.1.0

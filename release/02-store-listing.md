@@ -7,7 +7,7 @@
 ### 名称（45 字内）
 
 ```
-CosmoTab — 一键整理标签页
+PowerfulTab — 一键整理标签页
 ```
 
 ---
@@ -25,9 +25,9 @@ CosmoTab — 一键整理标签页
 ### 详细介绍（16,000 字内 · 详情页主体）
 
 ```
-🌌 CosmoTab — 把混乱的标签页变成宇宙银河
+🌌 PowerfulTab — 把混乱的标签页变成宇宙银河
 
-如果你和我一样，一开 Chrome 就有 30+ 个标签页飘在窗口上方变成像素，CosmoTab 就是为你设计的。
+如果你和我一样，一开 Chrome 就有 30+ 个标签页飘在窗口上方变成像素，PowerfulTab 就是为你设计的。
 
 ✨ 核心功能
 
@@ -43,7 +43,7 @@ CosmoTab — 一键整理标签页
 
 🔒 隐私至上
 
-CosmoTab 完全在你本地运行：
+PowerfulTab 完全在你本地运行：
 · 不收集任何数据
 · 不发送任何网络请求
 · 所有偏好（白名单、主题、模式）只保存在 chrome.storage.local
@@ -57,13 +57,13 @@ CosmoTab 完全在你本地运行：
 
 🚀 上手
 
-1. 安装后点击工具栏 CosmoTab 图标
+1. 安装后点击工具栏 PowerfulTab 图标
 2. 侧边栏会自动打开
 3. 点 "一键整理" 即开始
 
 💌 反馈与建议
 
-GitHub: https://github.com/Leonxlnx/CosmoTab
+GitHub: https://github.com/Peeeng/PowerfulTab
 有想法、找 bug、想加功能，欢迎来 issue 区。
 
 ---
@@ -76,7 +76,7 @@ GitHub: https://github.com/Leonxlnx/CosmoTab
 ### 单一用途（隐私惯例必填，250 字内）
 
 ```
-CosmoTab 的唯一用途是帮助用户整理浏览器中打开的标签页：通过按域名分组、检测并合并重复标签、按最近访问时间排序，让用户能更高效地管理大量标签。所有数据处理均在本地完成，不上传任何信息。
+PowerfulTab 的唯一用途是帮助用户整理浏览器中打开的标签页：通过按域名分组、检测并合并重复标签、按最近访问时间排序，让用户能更高效地管理大量标签。所有数据处理均在本地完成，不上传任何信息。
 ```
 
 字符数：96
@@ -112,6 +112,6 @@ English（可选添加，详细说明可以让我用英文再写一遍）
 
 | 字段 | 值 |
 | --- | --- |
-| 网站 | https://github.com/Leonxlnx/CosmoTab |
+| 网站 | https://github.com/Peeeng/PowerfulTab |
 | 支持邮箱 | （你的真实邮箱，必须可收信） |
-| 支持页 URL | https://github.com/Leonxlnx/CosmoTab/issues |
+| 支持页 URL | https://github.com/Peeeng/PowerfulTab/issues |

@@ -10,7 +10,7 @@
 [![Manifest V3](https://img.shields.io/badge/Manifest-V3-success.svg)](manifest.config.ts)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Vite](https://img.shields.io/badge/Vite-5-646CFF?logo=vite&logoColor=white)](https://vitejs.dev/)
-[![Privacy](https://img.shields.io/badge/Privacy-Local-brightgreen)](https://xionglay34-prog.github.io/CosmoTab/privacy)
+[![Privacy](https://img.shields.io/badge/Privacy-Local-brightgreen)](https://peeeng.github.io/PowerfulTab/privacy)
 
 [✨ 功能](#支持的能力) · [📸 预览](#预览) · [📦 安装](#安装与更新) · [🛠 开发](#开发与代码入口) · [🔒 隐私](#本地数据与权限)
 
@@ -22,7 +22,7 @@
 
 Chrome 标签管理扩展：域名 / 一级 Path 整理、精确去重、搜索、窗口配色及标签操作。基于 Manifest V3、TypeScript、React 18、Vite 5 和 GSAP。
 
-产品名称已从 **CosmoTab** 改为 **PowerfulTab**。仓库地址、目录名和内部 `cosmotab.*` 存储键保留，避免丢失已有设置与搜索历史。
+产品名称与仓库名称统一为 **PowerfulTab**。内部 `cosmotab.*` 存储键保留，避免丢失已有设置与搜索历史。
 
 ## 支持的能力
 
@@ -169,8 +169,8 @@ Chrome 不提供旧标签的真实创建时间。插件记录新标签创建时�
 ### 🧑‍💻 方式 2：从源码加载（开发者）
 
 ```bash
-git clone https://github.com/xionglay34-prog/CosmoTab.git
-cd CosmoTab
+git clone https://github.com/Peeeng/PowerfulTab.git
+cd PowerfulTab
 npm install
 npm run build
 ```
@@ -241,7 +241,7 @@ src/
 
 快捷键通过 Manifest `commands` 配置，不是额外权限。
 
-[隐私政策](https://xionglay34-prog.github.io/CosmoTab/privacy) · [反馈 Issue](https://github.com/xionglay34-prog/CosmoTab/issues) · [MIT License](LICENSE)
+[隐私政策](https://peeeng.github.io/PowerfulTab/privacy) · [反馈 Issue](https://github.com/Peeeng/PowerfulTab/issues) · [MIT License](LICENSE)
 
 ## 🐱 设计
 
@@ -252,10 +252,10 @@ src/
 
 ## 🙏 贡献与反馈
 
-欢迎通过 [Issue](https://github.com/xionglay34-prog/CosmoTab/issues) 反馈问题或提交 PR。开发前请核对本文的现有能力和已知边界，并运行 `npm run build` 验证改动。
+欢迎通过 [Issue](https://github.com/Peeeng/PowerfulTab/issues) 反馈问题或提交 PR。开发前请核对本文的现有能力和已知边界，并运行 `npm run build` 验证改动。
 
-邮箱：xionglay34@gmail.com。
+邮箱：Peeeng520@gmail.com。
 
 ## 📄 许可
 
-MIT License © 2026 [xionglay34-prog](https://github.com/xionglay34-prog)。
+MIT License。维护者：[Peeeng](https://github.com/Peeeng)；原版权声明见 [LICENSE](LICENSE)。

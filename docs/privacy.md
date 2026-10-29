@@ -1,14 +1,14 @@
-# CosmoTab 隐私政策
+# PowerfulTab 隐私政策
 
-**最后更新：2026-06-10**
+**最后更新：2026-10-29**
 
-CosmoTab（"我们"、"本扩展"）尊重并保护所有用户的个人隐私。本隐私政策说明了 CosmoTab 在你使用过程中如何处理数据。
+PowerfulTab（"我们"、"本扩展"）尊重并保护所有用户的个人隐私。本隐私政策说明了 PowerfulTab 在你使用过程中如何处理数据。
 
 ---
 
 ## 1. 我们不收集任何数据
 
-CosmoTab 是一个**纯本地运行**的浏览器扩展。我们：
+PowerfulTab 是一个**纯本地运行**的浏览器扩展。我们：
 
 - **不会** 收集你的个人身份信息
 - **不会** 收集你的浏览历史、URL、标签标题
@@ -24,12 +24,16 @@ CosmoTab 是一个**纯本地运行**的浏览器扩展。我们：
 
 | 数据类型 | 用途 | 是否离开你的设备 |
 | --- | --- | --- |
-| 白名单 URL 列表 | 防止指定标签被自动关闭 | 否 |
+| 白名单域名列表 | 按 Path 整理时，让指定域名仅按域名分组 | 否 |
 | 主题偏好（浅色/深色） | UI 渲染 | 否 |
-| 去重模式（Strict/Loose/Domain） | 整理逻辑 | 否 |
+| 整理方式、最多分组数、最少标签数、组内排序偏好 | 标签分组与列表展示 | 否 |
+| 搜索框保留数与搜索关键词历史 | 展示最近搜索；保留数设为 0 时不保留历史 | 否 |
+| 各标签创建时间戳（首次记录时间） | 按创建时间排序 | 否 |
 | 各标签最近访问时间戳 | 排序与显示相对时间 | 否 |
 
-你可以随时在 `chrome://extensions/` 卸载 CosmoTab，所有本地数据将被一并清除。
+此外，`chrome.storage.session` 临时保存各窗口的活动标签 ID 历史，用于新标签继承当前分组，不会上传到服务器。
+
+你可以随时在 `chrome://extensions/` 卸载 PowerfulTab，扩展保存的本地数据将被一并清除。
 
 ---
 
@@ -38,7 +42,7 @@ CosmoTab 是一个**纯本地运行**的浏览器扩展。我们：
 | 权限 | 用途 |
 | --- | --- |
 | `tabs` | 在本地读取标签 URL/title/favicon 用于分组与去重 |
-| `tabGroups` | 把同域标签合并到 Chrome 原生标签组 |
+| `tabGroups` | 按域名或一级 Path 管理 Chrome 原生标签组 |
 | `sessions` | 实现"撤销关闭"功能 |
 | `storage` | 本地保存上述偏好 |
 | `sidePanel` | 在侧边栏显示主界面 |
@@ -50,30 +54,30 @@ CosmoTab 是一个**纯本地运行**的浏览器扩展。我们：
 
 ## 4. 网络请求
 
-CosmoTab 不会主动发起任何网络请求。
+PowerfulTab 不会主动发起任何网络请求。
 （站点 favicon 由 Chrome 内置 `chrome://favicon/` 提供，不经过我们任何服务器。）
 
 ---
 
 ## 5. 第三方服务
 
-CosmoTab 不集成任何分析、统计、广告或追踪 SDK。
+PowerfulTab 不集成任何分析、统计、广告或追踪 SDK。
 
 ---
 
 ## 6. 儿童隐私
 
-CosmoTab 不针对 13 岁以下儿童收集数据。
+PowerfulTab 不针对 13 岁以下儿童收集数据。
 
 ---
 
 ## 7. 政策更新
 
-本政策若有更新，将在 GitHub 仓库与商店详情页同步发布。重大变更时会在扩展内提醒。
+本政策若有更新，将在本项目 GitHub 仓库的隐私政策页面发布。
 
 ---
 
 ## 8. 联系我们
 
-- GitHub Issues: https://github.com/xionglay34-prog/CosmoTab/issues
-- Email: xionglay34@gmail.com
+- GitHub Issues: https://github.com/Peeeng/PowerfulTab/issues
+- Email: Peeeng520@gmail.com

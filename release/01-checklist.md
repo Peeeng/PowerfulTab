@@ -16,7 +16,7 @@
   - 仓库 Settings → Pages → Source: `main` / `docs/` 目录
   - 把 `04-privacy-policy.md` 复制到仓库根的 `docs/privacy.md`
   - 等待 Pages 部署完成 → 拿到 URL，例如  
-    `https://leonxlnx.github.io/CosmoTab/privacy.html`
+    `https://peeeng.github.io/PowerfulTab/privacy`
   - **这个 URL 是商店"隐私政策"必填字段，没有这个一定被拒**
 
 ---

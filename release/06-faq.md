@@ -78,7 +78,7 @@ Specifically:
 - The "tabs" permission is used to read tab.url / tab.title for local grouping
   and deduplication only. No data leaves the user's device.
 - A privacy policy is now publicly available at:
-  https://leonxlnx.github.io/CosmoTab/privacy
+  https://peeeng.github.io/PowerfulTab/privacy
 - Screenshots have been replaced with genuine UI captures (1280×800).
 
 The new package has been resubmitted as version [v]. Please re-review at your
