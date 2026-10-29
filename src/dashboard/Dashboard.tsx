@@ -1,6 +1,5 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import type {
-  DedupeMode,
   LastAccessedMap,
   RuntimeMessage,
   RuntimeResponse,
@@ -8,10 +7,12 @@ import type {
   TabInfo,
   Theme,
 } from '../core/types';
-import { getSettings, setSettings } from '../core/storage';
+import { getCreatedAtMap, getSettings, setSettings } from '../core/storage';
 import { queryAllTabs } from '../core/tabs';
 import Toolbar from './components/Toolbar';
 import CardGrid from './components/CardGrid';
+import SettingsDialog from '../components/SettingsDialog';
+import TabSearch from './components/TabSearch';
 import './dashboard.css';
 
 function send<T>(msg: RuntimeMessage): Promise<RuntimeResponse<T>> {
@@ -36,22 +37,37 @@ export default function Dashboard(): JSX.Element {
   const [settings, setSettingsState] = useState<Settings | null>(null);
   const [tabs, setTabs] = useState<TabInfo[]>([]);
   const [lastAccessed, setLastAccessed] = useState<LastAccessedMap>({});
+  const [createdAt, setCreatedAt] = useState<LastAccessedMap>({});
+  const [focusedWindowId, setFocusedWindowId] = useState<number>();
   const [busy, setBusy] = useState(false);
   const [hint, setHint] = useState<string>('');
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
   const [undo, setUndo] = useState<UndoState | null>(null);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const undoTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const listRef = useRef<HTMLElement>(null);
+  const listScrollTop = useRef(0);
+
+  useLayoutEffect(() => {
+    // 激活标签会更新 Recent 和组内访问排序，保持用户所在的滚动位置。
+    if (listRef.current) listRef.current.scrollTop = listScrollTop.current;
+  }, [tabs, lastAccessed, createdAt, focusedWindowId]);
 
   const refresh = async (): Promise<void> => {
-    const [s, list, r] = await Promise.all([
+    const [s, list, r, created, focused] = await Promise.all([
       getSettings(),
       queryAllTabs(),
       send<LastAccessedMap>({ type: 'getLastAccessed' }),
+      getCreatedAtMap(),
+      chrome.windows.getLastFocused(),
     ]);
     setSettingsState(s);
     setTabs(list);
     if (r.ok && r.data) setLastAccessed(r.data);
+    setCreatedAt(created);
+    setFocusedWindowId(focused.id);
   };
 
   useEffect(() => {
@@ -64,13 +80,14 @@ export default function Dashboard(): JSX.Element {
     chrome.tabs.onUpdated.addListener(handler);
     chrome.tabs.onMoved.addListener(handler);
     chrome.tabs.onActivated.addListener(handler);
+    chrome.windows.onFocusChanged.addListener(handler);
 
     // background 写入 lastAccessed → 通过 storage 变化感知，立刻拉新
     const onStorageChange = (
       changes: { [key: string]: chrome.storage.StorageChange },
       area: string,
     ): void => {
-      if (area === 'local' && changes['cosmotab.lastAccessed']) {
+      if (area === 'local' && (changes['cosmotab.lastAccessed'] || changes['cosmotab.settings'])) {
         void refresh();
       }
     };
@@ -87,10 +104,12 @@ export default function Dashboard(): JSX.Element {
       chrome.tabs.onUpdated.removeListener(handler);
       chrome.tabs.onMoved.removeListener(handler);
       chrome.tabs.onActivated.removeListener(handler);
+      chrome.windows.onFocusChanged.removeListener(handler);
       chrome.storage.onChanged.removeListener(onStorageChange);
       clearInterval(tick);
     };
   }, []);
+
 
   // Auto-clear undo toast after 5s.
   useEffect(() => {
@@ -109,11 +128,13 @@ export default function Dashboard(): JSX.Element {
   }
 
   const themeClass = settings.theme === 'dark' ? 'cosmo-dark' : 'cosmo-light';
+  const pathDomainWhitelist = new Set(settings.pathDomainWhitelist);
 
   const apply = async (patch: Partial<Settings>): Promise<void> => {
     const next = await setSettings(patch);
     setSettingsState(next);
   };
+
 
   /** Close tabs with undo support: capture session IDs after Chrome closes them. */
   const closeWithUndo = async (ids: number[]): Promise<void> => {
@@ -153,20 +174,33 @@ export default function Dashboard(): JSX.Element {
     setHint('整理中…');
     const r = await send<{ closed: number; grouped: number; groupsCreated: number }>({
       type: 'organizeAll',
-      payload: { dedupeMode: settings.dedupeMode, sortScope: settings.sortScope },
     });
     setBusy(false);
     if (r.ok && r.data) {
-      setHint(`已关闭重复 ${r.data.closed} 个`);
+      setHint(`已分组 ${r.data.grouped} 个标签 · ${r.data.groupsCreated} 个组`);
     } else {
       setHint(`失败：${r.error ?? 'unknown'}`);
     }
     void refresh();
   };
 
+  const onDedupe = async (): Promise<void> => {
+    setBusy(true);
+    setHint('去重中…');
+    const r = await send<{ closed: number }>({ type: 'dedupeOnly' });
+    setBusy(false);
+    setHint(r.ok && r.data ? `已关闭完全重复 ${r.data.closed} 个` : `失败：${r.error ?? 'unknown'}`);
+    void refresh();
+  };
+
   const onActivate = (tab: TabInfo): void => {
+    listScrollTop.current = listRef.current?.scrollTop ?? 0;
     void chrome.tabs.update(tab.id, { active: true });
     void chrome.windows.update(tab.windowId, { focused: true });
+  };
+
+  const onDuplicate = (tab: TabInfo): void => {
+    void chrome.tabs.duplicate(tab.id).then(() => refresh()).catch(() => setHint('复制标签失败'));
   };
 
   const onToggleCollapse = (key: string): void => {
@@ -193,19 +227,32 @@ export default function Dashboard(): JSX.Element {
         busy={busy}
         hint={hint}
         theme={settings.theme}
-        dedupeMode={settings.dedupeMode}
         onTheme={(t: Theme) => void apply({ theme: t })}
-        onDedupeMode={(m: DedupeMode) => void apply({ dedupeMode: m })}
         onOrganize={onOrganize}
+        onDedupe={onDedupe}
+        onSettings={() => setSettingsOpen(true)}
       />
 
-      <main className="cosmo-dash__main">
+      {settingsOpen && <SettingsDialog settings={settings} onSave={apply} onClose={() => setSettingsOpen(false)} />}
+
+      <TabSearch query={searchQuery} onQuery={setSearchQuery} historyCount={settings.searchHistoryCount} />
+
+      <main ref={listRef} className="cosmo-dash__main" onScroll={(e) => { listScrollTop.current = e.currentTarget.scrollTop; }}>
         <CardGrid
           tabs={tabs}
+          searchQuery={searchQuery}
           lastAccessed={lastAccessed}
+          createdAt={createdAt}
+          groupTabSort={settings.groupTabSort}
+          focusedWindowId={focusedWindowId}
+          groupByFirstPath={settings.groupMode === 'path'}
+          pathDomainWhitelist={pathDomainWhitelist}
+          maxGroupCount={settings.maxGroupCount}
+          minGroupTabs={settings.minGroupTabs}
           collapsed={collapsed}
           onToggleCollapse={onToggleCollapse}
           onActivate={onActivate}
+          onDuplicate={onDuplicate}
           onClose={onClose}
           onCloseGroup={onCloseGroup}
         />

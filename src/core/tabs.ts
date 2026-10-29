@@ -1,9 +1,8 @@
 import { dedupe } from './dedupe';
-import { applyTabGroups, groupByDomain } from './grouping';
+import { applyGroupingRules, applyTabGroups, groupByDomain } from './grouping';
 import { applySort } from './sort';
-import { getLastAccessedMap, getWhitelist } from './storage';
+import { getCreatedAtMap, getLastAccessedMap, getSettings, getWhitelist } from './storage';
 import type {
-  DedupeMode,
   OrganizeSummary,
   SortScope,
   TabInfo,
@@ -19,6 +18,7 @@ export function toTabInfo(t: chrome.tabs.Tab): TabInfo | null {
     title: t.title ?? '',
     favIconUrl: t.favIconUrl,
     pinned: t.pinned ?? false,
+    active: t.active,
     groupId: t.groupId ?? -1,
     index: t.index,
   };
@@ -39,46 +39,24 @@ function filterEligible(tabs: TabInfo[], whitelistUrls: Set<string>): TabInfo[] 
   return tabs.filter((t) => !t.pinned && !whitelistUrls.has(t.url));
 }
 
-export async function organizeAll(opts: {
-  dedupeMode: DedupeMode;
-  sortScope: SortScope;
-}): Promise<OrganizeSummary> {
-  const [allTabs, lastAccessed, wl] = await Promise.all([
+/** 一键整理仅分组，绝不调用去重、关闭标签或跨窗口排序。 */
+export async function organizeAll(): Promise<OrganizeSummary> {
+  const [allTabs, wl, settings, createdAt, lastAccessed] = await Promise.all([
     queryAllTabs(),
-    getLastAccessedMap(),
     getWhitelist(),
+    getSettings(),
+    getCreatedAtMap(),
+    getLastAccessedMap(),
   ]);
   const wlSet = new Set(wl.urls);
+  const pathDomainWhitelist = new Set(settings.pathDomainWhitelist);
   const eligible = filterEligible(allTabs, wlSet);
 
-  // 1) dedupe
-  const toClose = dedupe(eligible, opts.dedupeMode, lastAccessed);
-  if (toClose.length > 0) {
-    try {
-      await chrome.tabs.remove(toClose);
-    } catch (e) {
-      console.warn('[CosmoTab] remove failed', e);
-    }
-  }
-
-  // 2) refresh tabs after dedupe
-  const remainingAll = await queryAllTabs();
-  const remaining = filterEligible(remainingAll, wlSet);
-
-  // 3) sort first — by lastAccessed. Doing this before grouping avoids
-  //    chrome.tabs.move() inserting an unrelated tab between two same-domain
-  //    tabs that already share a group (which Chrome would auto-add to that
-  //    group). After sort, grouping pulls same-domain tabs adjacent without
-  //    contaminating other tabs.
-  await applySort(opts.sortScope, remaining, lastAccessed);
-
-  // 4) group within each window (re-query because sort moved things around)
-  const refreshed = await queryAllTabs();
-  const refreshedEligible = filterEligible(refreshed, wlSet);
+  const byFirstPath = settings.groupMode === 'path';
   let groupsCreated = 0;
   let grouped = 0;
   const byWin = new Map<number, TabInfo[]>();
-  for (const t of refreshedEligible) {
+  for (const t of eligible) {
     let arr = byWin.get(t.windowId);
     if (!arr) {
       arr = [];
@@ -87,21 +65,30 @@ export async function organizeAll(opts: {
     arr.push(t);
   }
   for (const [winId, arr] of byWin) {
-    const groups = groupByDomain(arr);
+    const preGroups = groupByDomain(arr, byFirstPath, pathDomainWhitelist);
+    const groups = applyGroupingRules(
+      preGroups,
+      settings.minGroupTabs,
+      settings.maxGroupCount,
+    );
     grouped += groups
-      .filter((g) => g.tabs.length >= 2)
       .reduce((acc, g) => acc + g.tabs.length, 0);
-    groupsCreated += await applyTabGroups(winId, groups);
+    for (const group of groups) {
+      group.tabs.sort((a, b) => settings.groupTabSort === 'created'
+        ? (createdAt[a.id] ?? a.id) - (createdAt[b.id] ?? b.id)
+        : (lastAccessed[b.id] ?? 0) - (lastAccessed[a.id] ?? 0));
+    }
+    groupsCreated += await applyTabGroups(winId, groups, true);
   }
 
   return {
-    closed: toClose.length,
+    closed: 0,
     grouped,
     groupsCreated,
   };
 }
 
-export async function dedupeOnly(mode: DedupeMode): Promise<number> {
+export async function dedupeOnly(): Promise<number> {
   const [allTabs, lastAccessed, wl] = await Promise.all([
     queryAllTabs(),
     getLastAccessedMap(),
@@ -109,7 +96,7 @@ export async function dedupeOnly(mode: DedupeMode): Promise<number> {
   ]);
   const wlSet = new Set(wl.urls);
   const eligible = filterEligible(allTabs, wlSet);
-  const toClose = dedupe(eligible, mode, lastAccessed);
+  const toClose = dedupe(eligible, lastAccessed);
   if (toClose.length > 0) {
     try {
       await chrome.tabs.remove(toClose);
@@ -131,22 +118,5 @@ export async function sortOnly(scope: SortScope): Promise<void> {
 }
 
 export async function groupOnly(): Promise<number> {
-  const [allTabs, wl] = await Promise.all([queryAllTabs(), getWhitelist()]);
-  const wlSet = new Set(wl.urls);
-  const eligible = filterEligible(allTabs, wlSet);
-  const byWin = new Map<number, TabInfo[]>();
-  for (const t of eligible) {
-    let arr = byWin.get(t.windowId);
-    if (!arr) {
-      arr = [];
-      byWin.set(t.windowId, arr);
-    }
-    arr.push(t);
-  }
-  let created = 0;
-  for (const [winId, arr] of byWin) {
-    const groups = groupByDomain(arr);
-    created += await applyTabGroups(winId, groups);
-  }
-  return created;
+  return (await organizeAll()).groupsCreated;
 }

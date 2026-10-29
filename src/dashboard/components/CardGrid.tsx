@@ -1,13 +1,23 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { LastAccessedMap, TabInfo } from '../../core/types';
-import { groupByDomain, safeHostname } from '../../core/grouping';
+import { applyGroupingRules, groupByDomain, safeHostname } from '../../core/grouping';
+import { matchesTabSearch } from '../../core/search';
 
 interface Props {
   tabs: TabInfo[];
+  searchQuery: string;
   lastAccessed: LastAccessedMap;
+  createdAt: LastAccessedMap;
+  groupTabSort: 'created' | 'accessed';
+  focusedWindowId?: number;
+  groupByFirstPath: boolean;
+  pathDomainWhitelist: ReadonlySet<string>;
+  maxGroupCount: number;
+  minGroupTabs: number;
   collapsed: Set<string>;
   onToggleCollapse: (key: string) => void;
   onActivate: (tab: TabInfo) => void;
+  onDuplicate: (tab: TabInfo) => void;
   onClose: (ids: number[]) => void;
   onCloseGroup: (hostname: string, ids: number[]) => void;
 }
@@ -164,23 +174,29 @@ interface RowProps {
   tab: TabInfo;
   ts: number | undefined;
   active: boolean;
+  focused: boolean;
+  windowHue: number;
   showHost: boolean;
   onActivate: () => void;
+  onDuplicate: () => void;
   onClose: () => void;
 }
 
-function Row({ tab, ts, active, showHost, onActivate, onClose }: RowProps): JSX.Element {
+function Row({ tab, ts, active, focused, windowHue, showHost, onActivate, onDuplicate, onClose }: RowProps): JSX.Element {
   const stale = freshness(ts) < 0.05 ? '1' : '0';
   return (
     <div
       className="cosmo-row"
       data-active={active ? '1' : '0'}
+      data-focused={focused ? '1' : '0'}
+      style={{ '--active-window-hue': String(windowHue) } as React.CSSProperties}
       data-stale={stale}
       data-show-host={showHost ? '1' : '0'}
       onClick={onActivate}
       role="button"
       tabIndex={0}
       onKeyDown={(e) => {
+        if (e.target !== e.currentTarget) return;
         if (e.key === 'Enter') onActivate();
         if (e.key === 'Backspace' || e.key === 'Delete') {
           e.preventDefault();
@@ -189,9 +205,14 @@ function Row({ tab, ts, active, showHost, onActivate, onClose }: RowProps): JSX.
       }}
     >
       <img className="cosmo-row__fav" src={faviconUrl(tab.url)} alt="" />
-      <span className="cosmo-row__title" title={tab.url}>{tab.title || tab.url}</span>
+      <span className="cosmo-row__title" title={tab.url}>{active && <span className="cosmo-row__window" title={`窗口 ${tab.windowId} 当前标签${focused ? '（当前窗口）' : ''}`}>W{tab.windowId}</span>}{tab.title || tab.url}</span>
       {showHost && <span className="cosmo-row__host">{safeHostname(tab.url)}</span>}
+      <div className="cosmo-row__meta">
       <span className="cosmo-row__time">{formatAgo(ts)}</span>
+      <div className="cosmo-row__actions">
+      <button className="cosmo-row__close cosmo-row__duplicate" aria-label="复制此标签页" title="复制此标签页" onClick={(e) => { e.stopPropagation(); onDuplicate(); }}>
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden="true"><rect x="8" y="8" width="12" height="13" rx="2" /><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h3" /></svg>
+      </button>
       <button
         className="cosmo-row__close"
         aria-label="关闭此标签页"
@@ -203,40 +224,93 @@ function Row({ tab, ts, active, showHost, onActivate, onClose }: RowProps): JSX.
       >
         <CloseGlyph />
       </button>
+      </div>
+      </div>
     </div>
   );
 }
 
 export default function CardGrid({
   tabs,
+  searchQuery,
   lastAccessed,
+  createdAt,
+  groupTabSort,
+  focusedWindowId,
+  groupByFirstPath,
+  pathDomainWhitelist,
+  maxGroupCount,
+  minGroupTabs,
   collapsed,
   onToggleCollapse,
   onActivate,
+  onDuplicate,
   onClose,
   onCloseGroup,
 }: Props): JSX.Element {
+  const windowColors = useMemo(() => {
+    // 窗口 ID 固定映射到 10 色循环；切换、关闭其他窗口或搜索不会改变其颜色。
+    const hues = [210, 30, 145, 270, 330, 185, 60, 115, 245, 0];
+    const windows = [...new Set(tabs.map((tab) => tab.windowId))]
+      .sort((a, b) => a - b);
+    const colors = new Map<number, number>();
+    windows.forEach((id) => colors.set(id, hues[((id % hues.length) + hues.length) % hues.length]!));
+    return colors;
+  }, [tabs]);
+  const plannedGroups = useMemo(() => applyGroupingRules(
+    groupByDomain(tabs, groupByFirstPath, pathDomainWhitelist), minGroupTabs, maxGroupCount,
+  ), [tabs, groupByFirstPath, pathDomainWhitelist, minGroupTabs, maxGroupCount]);
+  const [groupOrder, setGroupOrder] = useState<string[]>([]);
+  const initializedOrder = useRef(false);
+  // 只由分组数量变化触发计时，访问时间刷新和搜索不会重置倒计时。
+  const groupCounts = JSON.stringify(plannedGroups.map((group) => [group.key, group.tabs.length]));
+  useEffect(() => {
+    const order = (JSON.parse(groupCounts) as [string, number][]).map(([key]) => key);
+    if (!initializedOrder.current && order.length > 0) {
+      initializedOrder.current = true;
+      setGroupOrder(order);
+      return;
+    }
+    const timer = setTimeout(() => setGroupOrder(order), 30_000);
+    return () => clearTimeout(timer);
+  }, [groupCounts]);
   const groups = useMemo(() => {
-    return groupByDomain(tabs)
+    const ranks = new Map(groupOrder.map((key, index) => [key, index]));
+    const selected = [...plannedGroups].sort((a, b) => {
+      if (a.key === '__other__') return 1;
+      if (b.key === '__other__') return -1;
+      return (ranks.get(a.key) ?? groupOrder.length) - (ranks.get(b.key) ?? groupOrder.length);
+    });
+    // 先计算完整分组再筛选，避免搜索让原组因不足最少标签数而归入 other。
+    const displayGroups = selected
+      .map((g) => ({ ...g, tabs: g.tabs.filter((tab) => matchesTabSearch(tab, searchQuery)) }))
+      .filter((g) => g.tabs.length > 0)
       .map((g) => {
         const sorted = [...g.tabs].sort(
-          (a, b) => (lastAccessed[b.id] ?? 0) - (lastAccessed[a.id] ?? 0),
+          (a, b) => groupTabSort === 'created'
+            ? (createdAt[a.id] ?? a.id) - (createdAt[b.id] ?? b.id)
+            : (lastAccessed[b.id] ?? 0) - (lastAccessed[a.id] ?? 0),
         );
-        const hottest = lastAccessed[sorted[0]?.id ?? -1] ?? 0;
+        const hottest = Math.max(0, ...sorted.map((tab) => lastAccessed[tab.id] ?? 0));
         return { ...g, tabs: sorted, hottest };
-      })
-      .sort((a, b) => b.hottest - a.hottest);
-  }, [tabs, lastAccessed]);
+      });
+    return displayGroups;
+  }, [plannedGroups, groupOrder, lastAccessed, createdAt, groupTabSort, searchQuery]);
 
   const recent = useMemo(() => {
     return [...tabs]
+      .filter((tab) => matchesTabSearch(tab, searchQuery))
       .filter((t) => (lastAccessed[t.id] ?? 0) > 0)
       .sort((a, b) => (lastAccessed[b.id] ?? 0) - (lastAccessed[a.id] ?? 0))
       .slice(0, 8);
-  }, [tabs, lastAccessed]);
+  }, [tabs, lastAccessed, searchQuery]);
 
   const totalDomains = groups.length;
-  const totalTabs = tabs.length;
+  const totalTabs = groups.reduce((count, group) => count + group.tabs.length, 0);
+
+  if (searchQuery.trim() && totalTabs === 0) {
+    return <div className="cosmo-empty"><span className="cosmo-empty__title">没有匹配的标签</span><span className="cosmo-empty__hint">试试其他关键词，或清空搜索</span></div>;
+  }
 
   if (tabs.length === 0) {
     return (
@@ -248,7 +322,7 @@ export default function CardGrid({
     );
   }
 
-  const recentCollapsed = collapsed.has('__recent__');
+  const recentCollapsed = !searchQuery.trim() && collapsed.has('__recent__');
 
   const recentLabel = (() => {
     const top = recent[0];
@@ -263,7 +337,7 @@ export default function CardGrid({
     <div className="cosmo-list">
       <div className="cosmo-list__summary">
         <span>
-          {totalTabs} tabs · {totalDomains} domains
+          {totalTabs} tabs · {totalDomains} groups
         </span>
         <Squiggle />
       </div>
@@ -298,9 +372,12 @@ export default function CardGrid({
                   key={`recent-${t.id}`}
                   tab={t}
                   ts={lastAccessed[t.id]}
-                  active={false}
+                  active={t.active}
+                  focused={t.windowId === focusedWindowId}
+                  windowHue={windowColors.get(t.windowId) ?? 210}
                   showHost
                   onActivate={() => onActivate(t)}
+                  onDuplicate={() => onDuplicate(t)}
                   onClose={() => onClose([t.id])}
                 />
               ))}
@@ -310,7 +387,7 @@ export default function CardGrid({
       )}
 
       {groups.map((g) => {
-        const isCollapsed = collapsed.has(g.hostname);
+        const isCollapsed = !searchQuery.trim() && collapsed.has(g.key);
         const top = g.tabs[0];
         const hue = hueFromHostname(g.hostname);
         const sat = satFromHostname(g.hostname);
@@ -321,25 +398,25 @@ export default function CardGrid({
         return (
           <section
             className="cosmo-section"
-            key={g.hostname}
+            key={g.key}
             data-collapsed={isCollapsed ? '1' : '0'}
           >
             <div
               className="cosmo-section__head"
               style={headStyle}
-              onClick={() => onToggleCollapse(g.hostname)}
+              onClick={() => onToggleCollapse(g.key)}
               role="button"
               tabIndex={0}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' || e.key === ' ') {
                   e.preventDefault();
-                  onToggleCollapse(g.hostname);
+                  onToggleCollapse(g.key);
                 }
               }}
             >
               <ChevronDown />
               <img className="cosmo-section__fav" src={faviconUrl(top?.url ?? '')} alt="" />
-              <span className="cosmo-section__title">{g.hostname}</span>
+              <span className="cosmo-section__title">{g.label}</span>
               <span className="cosmo-section__count">{g.tabs.length}</span>
               <span className="cosmo-section__time">{formatAgo(g.hottest)}</span>
               <div className="cosmo-section__actions">
@@ -361,9 +438,12 @@ export default function CardGrid({
                     key={t.id}
                     tab={t}
                     ts={lastAccessed[t.id]}
-                    active={false}
-                    showHost={false}
+                    active={t.active}
+                    focused={t.windowId === focusedWindowId}
+                    windowHue={windowColors.get(t.windowId) ?? 210}
+                    showHost={g.key === '__other__'}
                     onActivate={() => onActivate(t)}
+                    onDuplicate={() => onDuplicate(t)}
                     onClose={() => onClose([t.id])}
                   />
                 ))}

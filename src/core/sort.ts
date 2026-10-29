@@ -1,4 +1,4 @@
-import { safeHostname } from './grouping';
+import { tabGroupKey } from './grouping';
 import type { LastAccessedMap, SortScope, TabInfo } from './types';
 
 export function sortByLastAccessed(
@@ -9,22 +9,24 @@ export function sortByLastAccessed(
 }
 
 /**
- * 把同域名的 tab 物理排在一起，同时整体按"最近访问"优先：
- * 1) 按 hostname 分簇
+ * 把同分组键的 tab 物理排在一起，同时整体按"最近访问"优先：
+ * 1) 常规模式按 hostname 分簇，一级 path 模式按 hostname + 一级 path 分簇
  * 2) 簇之间：按簇内最大 lastAccessed 降序（最近用过的域名排前）
  * 3) 簇之内：按 lastAccessed 降序
  */
 export function clusterByDomain(
   tabs: TabInfo[],
   lastAccessed: LastAccessedMap,
+  byFirstPath = false,
+  domainOnlyHosts: ReadonlySet<string> = new Set(),
 ): TabInfo[] {
   const buckets = new Map<string, TabInfo[]>();
   for (const t of tabs) {
-    const host = safeHostname(t.url);
-    let arr = buckets.get(host);
+    const key = tabGroupKey(t.url, byFirstPath, domainOnlyHosts);
+    let arr = buckets.get(key);
     if (!arr) {
       arr = [];
-      buckets.set(host, arr);
+      buckets.set(key, arr);
     }
     arr.push(t);
   }
@@ -48,6 +50,8 @@ export async function applySort(
   scope: SortScope,
   tabs: TabInfo[],
   lastAccessed: LastAccessedMap,
+  byFirstPath = false,
+  domainOnlyHosts: ReadonlySet<string> = new Set(),
 ): Promise<void> {
   if (scope === 'perWindow') {
     const byWin = new Map<number, TabInfo[]>();
@@ -60,7 +64,7 @@ export async function applySort(
       arr.push(t);
     }
     for (const [, arr] of byWin) {
-      const sorted = clusterByDomain(arr, lastAccessed);
+      const sorted = clusterByDomain(arr, lastAccessed, byFirstPath, domainOnlyHosts);
       for (let i = 0; i < sorted.length; i++) {
         const t = sorted[i];
         if (!t) continue;
@@ -75,7 +79,7 @@ export async function applySort(
   }
 
   // merged: 把所有 tab 合并到第一个窗口，并按全局顺序排列
-  const sorted = clusterByDomain(tabs, lastAccessed);
+  const sorted = clusterByDomain(tabs, lastAccessed, byFirstPath, domainOnlyHosts);
   const firstWin = sorted[0]?.windowId;
   if (firstWin == null) return;
   for (let i = 0; i < sorted.length; i++) {

@@ -1,12 +1,12 @@
 import { defineManifest } from '@crxjs/vite-plugin';
 export default defineManifest({
     manifest_version: 3,
-    name: 'CosmoTab',
-    version: '0.1.0',
+    name: 'PowerfulTab',
+    version: '0.1.1',
     description: '一键整理浏览器标签页：按域名分组 · 智能去重 · 最近访问排序 · 撤销关闭。给爆炸的标签页一个宇宙般的归位仪式。',
-    homepage_url: 'https://github.com/Leonxlnx/CosmoTab',
+    homepage_url: 'https://github.com/xionglay34-prog/CosmoTab',
     action: {
-        default_title: 'CosmoTab · 打开侧边栏',
+        default_title: 'PowerfulTab · 打开侧边栏',
     },
     background: {
         service_worker: 'src/background/index.ts',
@@ -14,6 +14,12 @@ export default defineManifest({
     },
     side_panel: {
         default_path: 'sidepanel.html',
+    },
+    commands: {
+        'focus-search': {
+            suggested_key: { default: 'Ctrl+Shift+Z', mac: 'Command+Shift+Z' },
+            description: '打开/关闭标签侧边栏，打开时聚焦搜索框',
+        },
     },
     // 最小权限原则：
     //   tabs        - 读取标签 URL/title/icon 用于分组/去重/展示

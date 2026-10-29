@@ -1,18 +1,16 @@
 import { useEffect, useRef } from 'react';
 import gsap from 'gsap';
-import type { DedupeMode, Theme } from '../../core/types';
+import DedupeIcon from '../../components/DedupeIcon';
+import SettingsIcon from '../../components/SettingsIcon';
+import type { Theme } from '../../core/types';
 
 interface Props {
   busy: boolean;
   hint: string;
   theme: Theme;
-  dedupeMode: DedupeMode;
   onTheme: (t: Theme) => void;
-  onDedupeMode: (m: DedupeMode) => void;
-  /**
-   * Single combined action: organize == dedupe + group + sort + refresh.
-   * Sort/Refresh are no longer separate buttons; "整理" is the One Big Verb.
-   */
+  onDedupe: () => void;
+  onSettings: () => void;
   onOrganize: () => void;
 }
 
@@ -100,9 +98,9 @@ export default function Toolbar(props: Props): JSX.Element {
     busy,
     hint,
     theme,
-    dedupeMode,
     onTheme,
-    onDedupeMode,
+    onDedupe,
+    onSettings,
     onOrganize,
   } = props;
 
@@ -171,7 +169,7 @@ export default function Toolbar(props: Props): JSX.Element {
           className="cosmo-toolbar__primary"
           onClick={handleOrganize}
           disabled={busy}
-          title="一键整理：分组 + 去重 + 按最近访问排序"
+          title="一键整理：仅分组，不关闭标签"
           aria-label="一键整理"
         >
           <span className="cosmo-toolbar__primary-bg" aria-hidden />
@@ -220,24 +218,14 @@ export default function Toolbar(props: Props): JSX.Element {
       <div className="cosmo-toolbar__group cosmo-toolbar__group--right">
         <button
           className="cosmo-toolbar__icon-btn cosmo-toolbar__icon-btn--wide"
-          onClick={() => {
-            const next: DedupeMode =
-              dedupeMode === 'strict' ? 'loose' : dedupeMode === 'loose' ? 'domain' : 'strict';
-            onDedupeMode(next);
-          }}
-          title={
-            dedupeMode === 'strict'
-              ? '去重模式：严格 (URL 完全一致才合并) · 点击切换为宽松'
-              : dedupeMode === 'loose'
-                ? '去重模式：宽松 (忽略 hash / 追踪参数 / 顺序) · 点击切换为整域'
-                : '去重模式：整域 (同域名只留最近访问的 1 个) · 点击切换为严格'
-          }
-          aria-label="切换去重模式"
+          onClick={onDedupe}
+          disabled={busy}
+          title="仅关闭完整链接完全一致的重复标签（包含 path、参数和 hash）"
         >
-          <span className="cosmo-toolbar__pill" data-mode={dedupeMode}>
-            {dedupeMode === 'strict' ? 'Strict' : dedupeMode === 'loose' ? 'Loose' : 'Domain'}
-          </span>
+          <DedupeIcon />
+          去重
         </button>
+        <button className="cosmo-toolbar__icon-btn" onClick={onSettings} disabled={busy} aria-label="设置" title="设置"><SettingsIcon /></button>
         <button
           className="cosmo-toolbar__icon-btn"
           onClick={() => onTheme(theme === 'dark' ? 'light' : 'dark')}

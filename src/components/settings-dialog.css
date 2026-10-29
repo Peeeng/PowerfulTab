@@ -1,0 +1,29 @@
+.cosmo-settings {
+  box-sizing: border-box;
+  width: min(400px, calc(100vw - 24px));
+  max-height: calc(100vh - 24px);
+  padding: 20px;
+  border: 1px solid var(--hairline-strong, var(--border));
+  border-radius: 12px;
+  color: var(--fg);
+  background: var(--surface, var(--bg));
+  font: inherit;
+}
+.cosmo-settings::backdrop { background: rgba(0, 0, 0, 0.4); }
+.cosmo-settings h2 { margin: 0 0 18px; font-size: 18px; }
+.cosmo-settings label { font-weight: 700; }
+.cosmo-settings__row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 12px 0; }
+.cosmo-settings textarea { box-sizing: border-box; width: 100%; margin-top: 6px; resize: vertical; }
+.cosmo-settings textarea, .cosmo-settings select, .cosmo-settings input[type='number'] {
+  padding: 6px 8px;
+  border: 1px solid var(--hairline-strong, var(--border));
+  border-radius: 6px;
+  background: var(--surface-2, var(--btn-bg));
+  color: var(--fg);
+  font: inherit;
+  font-weight: 400;
+}
+.cosmo-settings input[type='number'] { width: 60px; }
+.cosmo-settings p { color: var(--muted); font-size: 12px; margin: 6px 0 14px; }
+.cosmo-settings__actions { display: flex; justify-content: flex-end; gap: 8px; }
+.cosmo-settings button { padding: 6px 12px; border: 1px solid var(--hairline-strong, var(--border)); border-radius: 6px; background: var(--surface-2, var(--btn-bg)); color: var(--fg); font: inherit; cursor: pointer; }

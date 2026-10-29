@@ -9,8 +9,73 @@ import {
   removeLastAccessed,
   setLastAccessedMap,
   updateLastAccessed,
+  recordTabCreation,
 } from '../core/storage';
 import type { RuntimeMessage, RuntimeResponse } from '../core/types';
+import { registerGroupInheritance } from './inherit-group';
+
+registerGroupInheritance();
+
+function notifySearch(windowId: number): void {
+  const send = (): void => {
+    void chrome.runtime.sendMessage({ type: 'focusSearch', windowId }).catch(() => undefined);
+  };
+  send();
+  // 等待侧边栏页面挂载，避免首次消息早于搜索框监听器。
+  [150, 400].forEach((delay) => setTimeout(send, delay));
+}
+
+chrome.action.onClicked.addListener((tab) => {
+  if (tab.windowId != null) notifySearch(tab.windowId);
+});
+
+const visiblePanels = new Set<number>();
+chrome.runtime.onConnect.addListener((port) => {
+  if (port.name !== 'cosmotab-panel-state') return;
+  let windowId: number | undefined;
+  port.onMessage.addListener((message: { windowId: number; visible: boolean }) => {
+    windowId = message.windowId;
+    if (message.visible) visiblePanels.add(windowId);
+    else visiblePanels.delete(windowId);
+  });
+  port.onDisconnect.addListener(() => {
+    if (windowId != null) visiblePanels.delete(windowId);
+  });
+});
+
+chrome.commands.onCommand.addListener((command, tab) => {
+  if (command !== 'focus-search') return;
+  const toggle = (windowId: number, activeTabId?: number): void => {
+    if (visiblePanels.has(windowId)) {
+      const panel = chrome.sidePanel as typeof chrome.sidePanel & { close?: (options: { windowId: number }) => Promise<void> };
+      if (panel.close) void panel.close({ windowId }).catch(console.warn);
+      else {
+        // 旧版本关闭后恢复可用性，下次无需在用户手势前等待 setOptions。
+        const options = activeTabId != null ? { tabId: activeTabId } : {};
+        void chrome.sidePanel.setOptions({ ...options, enabled: false }).then(() => {
+          visiblePanels.delete(windowId);
+          setTimeout(() => void chrome.sidePanel.setOptions({ ...options, enabled: true, path: 'sidepanel.html' }), 100);
+        }).catch(console.warn);
+      }
+    } else {
+      // 必须直接调用 open，不能先 await 查询，否则可能丢失用户手势。
+      void chrome.sidePanel.open({ windowId }).then(() => notifySearch(windowId))
+        .catch((error) => console.warn('[CosmoTab] toggle search panel failed', error));
+    }
+  };
+  if (tab?.windowId != null) toggle(tab.windowId, tab.id);
+  else void chrome.windows.getLastFocused().then((window) => {
+    if (window.id != null) toggle(window.id);
+  });
+});
+
+// 恢复旧版关闭逻辑可能留下的禁用配置。
+void chrome.sidePanel.setOptions({ enabled: true, path: 'sidepanel.html' });
+void chrome.tabs.query({}).then((tabs) => {
+  for (const tab of tabs) {
+    if (tab.id != null) void chrome.sidePanel.setOptions({ tabId: tab.id, enabled: true, path: 'sidepanel.html' });
+  }
+});
 
 // 维护 lastAccessed
 chrome.tabs.onActivated.addListener(({ tabId }) => {
@@ -25,7 +90,17 @@ chrome.runtime.onInstalled.addListener(() => {
 });
 
 chrome.tabs.onCreated.addListener((tab) => {
-  if (tab.id != null) void updateLastAccessed(tab.id);
+  if (tab.id != null) {
+    void updateLastAccessed(tab.id);
+    void recordTabCreation(tab.id);
+  }
+});
+
+// 首次遇到已有标签时按其 id 顺序兜底，创建时间未知，不伪造历史时间。
+void chrome.tabs.query({}).then((tabs) => {
+  for (const tab of [...tabs].sort((a, b) => (a.id ?? 0) - (b.id ?? 0))) {
+    if (tab.id != null) void recordTabCreation(tab.id);
+  }
 });
 
 chrome.tabs.onUpdated.addListener((tabId, info) => {
@@ -90,12 +165,12 @@ chrome.runtime.onMessage.addListener(
             return;
           }
           case 'organizeAll': {
-            const summary = await organizeAll(msg.payload);
+            const summary = await organizeAll();
             sendResponse({ ok: true, data: summary });
             return;
           }
           case 'dedupeOnly': {
-            const n = await dedupeOnly(msg.payload.dedupeMode);
+            const n = await dedupeOnly();
             sendResponse({ ok: true, data: { closed: n } });
             return;
           }

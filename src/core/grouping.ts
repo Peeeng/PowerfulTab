@@ -30,6 +30,31 @@ export function safeHostname(url: string): string {
   }
 }
 
+/** URL 的一级 path；根路径或不可解析 URL 返回空字符串。 */
+export function firstPathSegment(url: string): string {
+  try {
+    const segment = new URL(url).pathname.split('/').find(Boolean) ?? '';
+    try {
+      return decodeURIComponent(segment);
+    } catch {
+      return segment;
+    }
+  } catch {
+    return '';
+  }
+}
+
+/** 生成域名分组键；path 模式使用 `hostname/一级 path`。 */
+export function tabGroupKey(
+  url: string,
+  byFirstPath = false,
+  domainOnlyHosts: ReadonlySet<string> = new Set(),
+): string {
+  const hostname = safeHostname(url);
+  if (!byFirstPath || domainOnlyHosts.has(hostname.toLowerCase())) return hostname;
+  return `${hostname}/${firstPathSegment(url)}`;
+}
+
 /**
  * 把 hostname 简化成 group 标题用的短名称：
  *   aidp.bytedance.net          → aidp        ← 取首段
@@ -81,31 +106,82 @@ export function shortDomainLabel(hostname: string): string {
   return DOMAIN_ALIAS[lower] ?? lower;
 }
 
-export function groupByDomain(tabs: TabInfo[]): DomainGroup[] {
-  const buckets = new Map<string, TabInfo[]>();
+export function groupByDomain(
+  tabs: TabInfo[],
+  byFirstPath = false,
+  domainOnlyHosts: ReadonlySet<string> = new Set(),
+): DomainGroup[] {
+  const buckets = new Map<string, DomainGroup>();
   for (const t of tabs) {
-    const host = safeHostname(t.url);
-    let arr = buckets.get(host);
-    if (!arr) {
-      arr = [];
-      buckets.set(host, arr);
+    const hostname = safeHostname(t.url);
+    const useFirstPath = byFirstPath && !domainOnlyHosts.has(hostname.toLowerCase());
+    const firstPath = useFirstPath ? firstPathSegment(t.url) : '';
+    const key = useFirstPath ? `${hostname}/${firstPath}` : hostname;
+    let group = buckets.get(key);
+    if (!group) {
+      group = {
+        key,
+        hostname,
+        // Path 名称保留完整业务前缀，不应用域名简称的连字符截断或别名。
+        label: firstPath
+          ? `${hostname.split('.')[0] || hostname}.${firstPath}`
+          : shortDomainLabel(hostname),
+        tabs: [],
+      };
+      buckets.set(key, group);
     }
-    arr.push(t);
+    group.tabs.push(t);
   }
-  return [...buckets.entries()].map(([hostname, ts]) => ({ hostname, tabs: ts }));
+  return [...buckets.values()];
 }
 
 /**
- * 把同窗口同域名的 tab 合并到一个 tab group：
- * - 同域名 ≥ 2 个：建一个有颜色的 group，标题为 shortDomainLabel(hostname)
- * - 同域名 < 2 个的零散 tab：保持散落（不建「其他」组）
+ * 先将不足最少标签数的预分组归入 other，再应用可选的最大组数限制。
+ * 最大组数包含 other，other 不受最少标签数限制，始终放在最后。
+ */
+export function applyGroupingRules(
+  groups: DomainGroup[],
+  minGroupTabs: number,
+  maxGroups?: number,
+): DomainGroup[] {
+  const minimum = Number.isFinite(minGroupTabs) ? Math.max(1, Math.floor(minGroupTabs)) : 5;
+  let keep = groups.filter((group) => group.tabs.length >= minimum);
+  const overflow = groups.filter((group) => group.tabs.length > 0 && group.tabs.length < minimum);
+  if (maxGroups !== undefined) {
+    const limit = Number.isFinite(maxGroups) ? Math.max(1, Math.floor(maxGroups)) : 20;
+    keep = keep
+      .map((group, index) => ({ group, index }))
+      .sort((a, b) => b.group.tabs.length - a.group.tabs.length || a.index - b.index)
+      .map(({ group }) => group);
+    if (keep.length + (overflow.length > 0 ? 1 : 0) > limit) {
+      overflow.push(...keep.slice(limit - 1));
+      keep = keep.slice(0, limit - 1);
+    }
+  }
+  if (overflow.length === 0) return keep;
+  const other: DomainGroup = {
+    key: '__other__',
+    hostname: '(other)',
+    label: 'other',
+    tabs: overflow.flatMap((group) => group.tabs),
+  };
+  return [...keep, other];
+}
+
+/**
+ * 把同窗口同分组键的 tab 合并到一个 tab group：
+ * 上游应用最少标签数/最大组数规则后，所有最终组（包括单标签 other）均建组。
  *
  * 关键：先把本轮所有 tab 从旧 group 中 ungroup，再统一建新组——
  * 否则 chrome.tabs.group() 不带 groupId 时每次都建新组，会出现同名组重复并排。
  *
  * 返回本轮新增的 group 数。
  */
-export async function applyTabGroups(windowId: number, groups: DomainGroup[]): Promise<number> {
+export async function applyTabGroups(
+  windowId: number,
+  groups: DomainGroup[],
+  orderByGroups = false,
+): Promise<number> {
   // 0) 把本轮参与整理的所有 tab 先 ungroup 干净（旧组会因失去成员被 Chrome 自动销毁）
   const allIds: number[] = [];
   for (const g of groups) {
@@ -121,9 +197,9 @@ export async function applyTabGroups(windowId: number, groups: DomainGroup[]): P
     }
   }
 
-  // 1) 同域名 ≥ 2 个 → 建彩色组；< 2 个保持散落
+  // 1) 最终非空组全部创建，other 即使只有一个标签也保留
   let created = 0;
-  const multi = groups.filter((g) => g.tabs.length >= 2);
+  const multi = groups.filter((g) => g.tabs.length > 0);
   for (const g of multi) {
     const tabIds = g.tabs.map((t) => t.id);
     try {
@@ -131,11 +207,19 @@ export async function applyTabGroups(windowId: number, groups: DomainGroup[]): P
         tabIds,
         createProperties: { windowId },
       });
+      // Chrome 入组不保证按 tabIds 排列，显式在组内排列，不移动到其他组之间。
+      const members = await chrome.tabs.query({ groupId });
+      const firstIndex = Math.min(...members.map((tab) => tab.index));
+      await chrome.tabs.move(tabIds, { index: firstIndex });
       await chrome.tabGroups.update(groupId, {
-        title: shortDomainLabel(g.hostname),
-        color: colorForHostname(g.hostname),
+        title: g.label,
+        color: g.key === '__other__' ? 'grey' : colorForHostname(g.key),
         collapsed: false,
       });
+      if (orderByGroups) {
+        // 依次移到窗口末尾，确保大组在前，other 最后；不移动受保护标签。
+        await chrome.tabGroups.move(groupId, { index: -1 });
+      }
       created += 1;
     } catch (e) {
       console.warn('[CosmoTab] group failed for', g.hostname, e);

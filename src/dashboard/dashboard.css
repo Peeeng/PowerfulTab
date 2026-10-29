@@ -98,6 +98,17 @@ html, body, #root {
 }
 
 .cosmo-toolbar__group { display: flex; gap: 2px; align-items: center; }
+.cosmo-search { position: relative; z-index: 5; flex-shrink: 0; padding: 8px 12px; border-bottom: 1px solid var(--hairline); }
+.cosmo-search__form { display: flex; gap: 6px; }
+.cosmo-search__field { position: relative; flex: 1; min-width: 0; }
+.cosmo-search__form input {
+  box-sizing: border-box; width: 100%; min-width: 0; padding: 6px 8px; border: 1px solid var(--hairline-strong);
+  border-radius: var(--r-sm); background: var(--surface); color: var(--fg); font: inherit;
+}
+.cosmo-search button { padding: 4px 8px; border: 1px solid var(--hairline); border-radius: var(--r-sm); background: var(--surface-2); color: var(--fg); font: inherit; cursor: pointer; }
+.cosmo-search__history { position: absolute; top: calc(100% + 4px); left: 0; right: 0; padding: 4px; border: 1px solid var(--hairline-strong); border-radius: var(--r-sm); background: var(--surface); box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15); }
+.cosmo-search__history [role='option'] { padding: 6px 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; border-radius: var(--r-xs); }
+.cosmo-search__history [role='option']:hover, .cosmo-search__history [aria-selected='true'] { background: var(--hover); }
 .cosmo-toolbar__group--right { margin-left: auto; }
 
 .cosmo-toolbar__icon-btn {
@@ -126,10 +137,59 @@ html, body, #root {
 
 .cosmo-toolbar__icon-btn--wide { padding: 0 10px; }
 .cosmo-toolbar__pill { font-size: 11px; font-weight: 500; }
-/* Domain 模式：同域名只留 1 个，是"破坏性"操作，用警示色提醒 */
-.cosmo-toolbar__pill[data-mode='domain'] {
+/* Domain / Path 是激进去重操作，用警示色提醒。 */
+.cosmo-toolbar__pill[data-mode='domain'],
+.cosmo-toolbar__pill[data-mode='path'] {
   color: var(--danger);
   font-weight: 600;
+}
+
+.cosmo-path-whitelist {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 12px;
+  border-bottom: 1px solid var(--hairline);
+  background: var(--surface);
+  font-size: 12px;
+}
+.cosmo-path-whitelist__label { color: var(--muted); white-space: nowrap; }
+.cosmo-group-limit__number {
+  width: 58px;
+  padding: 3px 6px;
+  font: inherit;
+  color: var(--fg);
+  background: var(--bg);
+  border: 1px solid var(--hairline-strong);
+  border-radius: var(--r-sm);
+}
+.cosmo-group-limit__number:disabled { opacity: 0.5; }
+.cosmo-path-whitelist__input {
+  min-width: 120px;
+  flex: 1;
+  height: 26px;
+  box-sizing: border-box;
+  padding: 0 8px;
+  color: var(--fg);
+  background: var(--bg);
+  border: 1px solid var(--hairline-strong);
+  border-radius: var(--r-sm);
+  font: inherit;
+}
+.cosmo-path-whitelist__input:focus {
+  outline: 2px solid var(--accent-soft);
+  border-color: var(--accent);
+}
+.cosmo-path-whitelist__save {
+  height: 26px;
+  padding: 0 10px;
+  color: var(--fg);
+  background: var(--surface-2);
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-sm);
+  font: inherit;
+  cursor: pointer;
 }
 
 /* ----- Primary "一键整理" — green glow capsule (GSAP-style) ----- */
@@ -303,9 +363,12 @@ html, body, #root {
   overflow-y: auto;
   overflow-x: hidden;
   overscroll-behavior: contain;
+  overflow-anchor: none;
   padding: 8px 0 80px;
   -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
 }
+.cosmo-dash__main::-webkit-scrollbar { display: none; width: 0; height: 0; }
 
 .cosmo-list {
   display: flex;
@@ -450,12 +513,15 @@ html, body, #root {
    ============================================================ */
 
 .cosmo-row {
+  position: relative;
+  margin-block: 1px;
+  box-sizing: border-box;
   display: grid;
-  grid-template-columns: 14px minmax(0, 1fr) auto 20px;
+  grid-template-columns: 14px minmax(0, 1fr) 50px;
   align-items: center;
   gap: 8px;
   height: var(--row-h);
-  padding: 0 10px 0 14px;
+  padding: 0 6px 0 14px;
   border: none;
   background: transparent;
   text-align: left;
@@ -465,14 +531,29 @@ html, body, #root {
   cursor: pointer;
   width: 100%;
 }
+.cosmo-row::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 5px;
+  border-radius: 2px;
+  background: hsl(var(--active-window-hue) 80% 48%);
+  pointer-events: none;
+}
 .cosmo-row[data-show-host='1'] {
-  grid-template-columns: 14px minmax(0, 1fr) auto auto 20px;
+  grid-template-columns: 14px minmax(0, 1fr) auto 50px;
 }
 .cosmo-row:hover { background: var(--hover); }
 .cosmo-row[data-active='1'] {
-  background: var(--accent-soft);
-  box-shadow: inset 2px 0 0 var(--accent);
+  background: hsl(var(--active-window-hue) 65% 91%);
+  color: #171717;
 }
+.cosmo-dash.cosmo-dark .cosmo-row[data-active='1'] { background: hsl(var(--active-window-hue) 45% 24%); color: #fff; }
+.cosmo-row[data-active='1'][data-focused='1'] { box-shadow: inset 0 0 0 1px hsl(var(--active-window-hue) 80% 55%); }
+.cosmo-row[data-active='1'] .cosmo-row__title { font-weight: 600; color: inherit; }
+.cosmo-row__window { display: inline-block; margin-right: 6px; padding: 0 4px; border: 1px solid currentColor; border-radius: 3px; font-size: 10px; font-weight: 700; }
 .cosmo-row[data-stale='1'] .cosmo-row__title { color: var(--muted); }
 
 .cosmo-row__fav {
@@ -498,6 +579,8 @@ html, body, #root {
   text-overflow: ellipsis;
 }
 
+.cosmo-row__meta { position: relative; width: 50px; height: 22px; display: flex; align-items: center; justify-content: flex-end; }
+.cosmo-row__actions { position: absolute; inset: 0; display: flex; align-items: center; justify-content: flex-end; gap: 6px; }
 .cosmo-row__time {
   color: var(--muted);
   font-size: 11px;
@@ -521,8 +604,8 @@ html, body, #root {
   opacity: 0;
   pointer-events: none;
   flex-shrink: 0;
-  /* Overlay the time column on the right edge */
-  margin-left: -22px;
+  /* 在共用空间内保留独立点击区域。 */
+  margin-left: 0;
   transition: opacity 0.12s ease, background 0.12s ease, color 0.12s ease, transform 0.12s ease;
 }
 .cosmo-row:hover .cosmo-row__close,
@@ -536,6 +619,10 @@ html, body, #root {
   transform: scale(1.08);
 }
 .cosmo-row__close:active { transform: scale(0.92); }
+.cosmo-row__duplicate:hover {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
 
 /* Empty / loading state */
 .cosmo-empty {
@@ -635,13 +722,13 @@ html, body, #root {
 .cosmo-body--side .cosmo-toolbar__primary { height: 30px; padding: 0 12px; font-size: 12px; }
 .cosmo-body--side .cosmo-cat { width: 44px; height: 26px; margin-bottom: -8px; }
 .cosmo-body--side .cosmo-row {
-  grid-template-columns: 14px minmax(0, 1fr) auto 22px;
-  padding: 0 8px 0 10px;
+  grid-template-columns: 14px minmax(0, 1fr) 50px;
+  padding: 0 6px 0 10px;
   font-size: 12px;
 }
 .cosmo-body--side .cosmo-row[data-show-host='1'] {
-  /* Recent 区里仍要给 host 留一列（虽然下面 display:none，但 grid 子元素会占位） */
-  grid-template-columns: 14px minmax(0, 1fr) 0 auto 22px;
+  /* 隐藏的 host 不占 grid 列，右侧由时间和操作共用。 */
+  grid-template-columns: 14px minmax(0, 1fr) 50px;
 }
 .cosmo-body--side .cosmo-row__host { display: none; }
 .cosmo-body--side .cosmo-row__close { opacity: 0; }

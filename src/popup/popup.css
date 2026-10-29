@@ -95,6 +95,16 @@ body {
   font-size: 13px;
 }
 .cosmo-popup__row label { color: var(--muted); }
+.cosmo-popup__group-limit {
+  width: 52px;
+  padding: 4px 6px;
+  font: inherit;
+  color: var(--fg);
+  background: var(--btn-bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+.cosmo-popup__group-limit:disabled { opacity: 0.5; }
 .cosmo-popup__row select {
   font: inherit;
   background: var(--btn-bg);
@@ -103,6 +113,30 @@ body {
   border-radius: 6px;
   padding: 4px 6px;
 }
+
+.cosmo-popup__whitelist {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 5px 8px;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+  font-size: 12px;
+}
+.cosmo-popup__whitelist label { font-weight: 600; }
+.cosmo-popup__whitelist span { color: var(--muted); font-size: 11px; }
+.cosmo-popup__whitelist input {
+  grid-column: 1 / -1;
+  box-sizing: border-box;
+  width: 100%;
+  padding: 6px 7px;
+  color: var(--fg);
+  background: var(--btn-bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font: inherit;
+}
+.cosmo-popup__whitelist button { grid-column: 1 / -1; }
 
 .cosmo-popup__open {
   width: 100%;
