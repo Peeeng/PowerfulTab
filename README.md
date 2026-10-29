@@ -1,4 +1,24 @@
+<div align="center">
+
+<img src="src/assets/icons/icon-128.png" alt="PowerfulTab" width="96" height="96" />
+
 # PowerfulTab
+
+**一键整理 Chrome 标签页：域名 / Path 分组 · 精确去重 · 快速检索 · 多窗口配色**
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Manifest V3](https://img.shields.io/badge/Manifest-V3-success.svg)](manifest.config.ts)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Vite](https://img.shields.io/badge/Vite-5-646CFF?logo=vite&logoColor=white)](https://vitejs.dev/)
+[![Privacy](https://img.shields.io/badge/Privacy-Local-brightgreen)](https://xionglay34-prog.github.io/CosmoTab/privacy)
+
+[✨ 功能](#支持的能力) · [📸 预览](#预览) · [📦 安装](#安装与更新) · [🛠 开发](#开发与代码入口) · [🔒 隐私](#本地数据与权限)
+
+</div>
+
+---
+
+## 🌌 简介
 
 Chrome 标签管理扩展：域名 / 一级 Path 整理、精确去重、搜索、窗口配色及标签操作。基于 Manifest V3、TypeScript、React 18、Vite 5 和 GSAP。
 
@@ -8,20 +28,20 @@ Chrome 标签管理扩展：域名 / 一级 Path 整理、精确去重、搜索�
 
 | 能力 | 当前行为 |
 | --- | --- |
-| 一键整理 | 只执行分组及设置要求的组内排列，不去重、不关闭标签、不跨窗口合并 |
-| 独立去重 | 完整 URL 字符串完全一致才关闭重复标签，保留最近访问者 |
+| 🚀 一键整理 | 只执行分组及设置要求的组内排列，不去重、不关闭标签、不跨窗口合并 |
+| 🧹 独立去重 | 完整 URL 字符串完全一致才关闭重复标签，保留最近访问者 |
 | 整理方式 | 按完整 hostname，或按 hostname + 一级 Path 分组 |
 | Path 白名单 | 指定域名不拆 Path，按域名分组 |
 | 最少标签数 | 默认 5；不足的预分组合并到 `other` |
 | 最多分组数 | 默认 20，始终生效，包含 `other` |
 | 组内标签排序 | 创建时间升序，或访问时间降序（默认） |
-| 标签检索 | URL、标签名称不区分大小写的包含匹配，输入实时筛选 |
-| 搜索记忆 | 默认保留 1 条，可设置 n 条或 0；点击输入框显示历史下拉列表 |
+| 🔎 标签检索 | URL、标签名称不区分大小写的包含匹配，输入实时筛选 |
+| 🕘 搜索记忆 | 默认保留 1 条，可设置 n 条或 0；点击输入框显示历史下拉列表 |
 | 标签操作 | 激活、复制、关闭标签和关闭整组 |
-| 多窗口配色 | 每个标签行显示窗口色竖线，各窗口活动标签使用同色背景高亮 |
-| 快捷键 | `Ctrl+Shift+Z` / macOS `⌘⇧Z` 切换侧边栏，打开时聚焦搜索框 |
-| 设置弹窗 | 齿轮按钮打开；保存才写入，取消、Esc 或点击弹窗外丢弃未保存修改 |
-| 主题 | 浅色、深色，可通过工具栏或设置切换 |
+| 🎨 多窗口配色 | 每个标签行显示窗口色竖线，各窗口活动标签使用同色背景高亮 |
+| ⌨️ 快捷键 | `Ctrl+Shift+Z` / macOS `⌘⇧Z` 切换侧边栏，打开时聚焦搜索框 |
+| ⚙️ 设置弹窗 | 齿轮按钮打开；保存才写入，取消、Esc 或点击弹窗外丢弃未保存修改 |
+| 🌗 主题 | 浅色、深色，可通过工具栏或设置切换 |
 
 ## 整理与去重
 
@@ -142,6 +162,12 @@ Chrome 不提供旧标签的真实创建时间。插件记录新标签创建时�
 
 ## 安装与更新
 
+### 🛍️ 方式 1：Chrome Web Store
+
+上架后可通过 Chrome Web Store 安装。原 README 提到商店审核，但目前仓库没有可核验的商店安装链接，暂不承诺上线时间；现阶段可使用下面的源码或 ZIP 安装方式。
+
+### 🧑‍💻 方式 2：从源码加载（开发者）
+
 ```bash
 git clone https://github.com/xionglay34-prog/CosmoTab.git
 cd CosmoTab
@@ -149,7 +175,20 @@ npm install
 npm run build
 ```
 
-打开 `chrome://extensions/`，启用开发者模式，选择“加载已解压的扩展程序”，加载本仓库 **`dist/`**。点击 PowerfulTab 扩展图标打开侧边栏。
+然后：
+
+1. 打开 `chrome://extensions/`。
+2. 右上角开启 **开发者模式**。
+3. 点击 **加载已解压的扩展程序**，选择本仓库 **`dist/`** 目录。
+4. 点击工具栏 PowerfulTab 图标，打开侧边栏使用。
+
+### 📦 方式 3：从 ZIP 加载
+
+下载或获取发布的扩展 ZIP，先解压到固定目录，再在 `chrome://extensions/` 中启用开发者模式，选择“加载已解压的扩展程序”，加载解压后含 `manifest.json` 的目录。
+
+仓库保留的 [v0.1.1 历史 ZIP](release/cosmotab-v0.1.1.zip) 是旧版本，**不包含全部本次改动**。最新源码打包请执行 `npm run release`，产物为 `release/dist.zip`。
+
+### 🔄 更新与重新加载
 
 源码修改后需重新 `npm run build`，在扩展页点击重新加载，并关闭后重新打开已有侧边栏 / 标签管理页面。重新加载旧 ZIP 的解压目录不会自动获取仓库 `dist/` 的新代码。
 
@@ -203,3 +242,20 @@ src/
 快捷键通过 Manifest `commands` 配置，不是额外权限。
 
 [隐私政策](https://xionglay34-prog.github.io/CosmoTab/privacy) · [反馈 Issue](https://github.com/xionglay34-prog/CosmoTab/issues) · [MIT License](LICENSE)
+
+## 🐱 设计
+
+- 手绘猫咪与品牌图标，保留原有轻松的视觉风格。
+- 辉光“一键整理”按钮，GSAP 3D 视差与悬停交互。
+- 浅色 / 深色主题、窗口彩色竖线与活动标签高亮。
+- 相对时间 `刚刚 / 5m / 2h / 3d`，中文界面与紧凑列表。
+
+## 🙏 贡献与反馈
+
+欢迎通过 [Issue](https://github.com/xionglay34-prog/CosmoTab/issues) 反馈问题或提交 PR。开发前请核对本文的现有能力和已知边界，并运行 `npm run build` 验证改动。
+
+邮箱：xionglay34@gmail.com。
+
+## 📄 许可
+
+MIT License © 2026 [xionglay34-prog](https://github.com/xionglay34-prog)。
