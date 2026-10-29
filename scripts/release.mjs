@@ -28,13 +28,14 @@ const manifestSrc = readFileSync(
 const versionMatch = manifestSrc.match(/version:\s*['"]([\d.]+)['"]/);
 const version = versionMatch ? versionMatch[1] : 'unknown';
 
-console.log(`\n📦 Building CosmoTab v${version} ...\n`);
+console.log(`\n📦 Building PowerfulTab v${version} ...\n`);
 
 // 2. 确保旧 zip 删掉
 mkdirSync(RELEASE, { recursive: true });
 if (existsSync(ZIP_PATH)) rmSync(ZIP_PATH);
 
 // 3. build
+run('node scripts/render-icons.mjs');
 run('npm run build');
 
 // 4. zip

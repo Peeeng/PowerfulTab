@@ -1,9 +1,19 @@
 # Changelog
 
-All notable changes to **CosmoTab** will be documented in this file.
+All notable changes to **PowerfulTab** will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [0.1.2] - 2026-10-29
+
+- 产品名称与项目链接更新为 PowerfulTab，联系邮箱为 Peeeng520@gmail.com。
+- 一键整理仅分组；支持域名 / 一级 Path、域名白名单、最少标签数与最多分组数。
+- 独立完整 URL 精确去重按钮，保留最近访问的标签。
+- 增加标题 / URL 搜索、可配置搜索历史、快捷键开关侧边栏、复制标签和新标签继承分组。
+- 快捷键统一在 Chrome 扩展快捷键页面管理，插件不指定默认组合键。
+- 增加多窗口配色、活动标签高亮、组内时间排序与 30 秒延迟重排序。
+- 更新隐私政策、商店文案、权限说明和品牌宣传图；准备发布包，尚未提交 Chrome Web Store 审核。
 
 ## [0.1.1] - 2026-06-12
 

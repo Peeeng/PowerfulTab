@@ -10,7 +10,7 @@
 [![Manifest V3](https://img.shields.io/badge/Manifest-V3-success.svg)](manifest.config.ts)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Vite](https://img.shields.io/badge/Vite-5-646CFF?logo=vite&logoColor=white)](https://vitejs.dev/)
-[![Privacy](https://img.shields.io/badge/Privacy-Local-brightgreen)](https://peeeng.github.io/PowerfulTab/privacy)
+[![Privacy](https://img.shields.io/badge/Privacy-Local-brightgreen)](docs/privacy.md)
 
 [✨ 功能](#支持的能力) · [📸 预览](#预览) · [📦 安装](#安装与更新) · [🛠 开发](#开发与代码入口) · [🔒 隐私](#本地数据与权限)
 
@@ -23,6 +23,12 @@
 Chrome 标签管理扩展：域名 / 一级 Path 整理、精确去重、搜索、窗口配色及标签操作。基于 Manifest V3、TypeScript、React 18、Vite 5 和 GSAP。
 
 产品名称与仓库名称统一为 **PowerfulTab**。内部 `cosmotab.*` 存储键保留，避免丢失已有设置与搜索历史。
+
+## 预览
+
+![PowerfulTab 品牌预览：域名 / Path 分组、精确去重、标签搜索与本地运行](release/screenshots/promo-marquee-1400x560.png)
+
+以上为品牌宣传图，不是实际界面截图。当前界面的截图需按 [截图指南](release/05-screenshots.md) 拍摄；Chrome Web Store 上架时还需提交真实产品截图。
 
 ## 支持的能力
 
@@ -39,7 +45,7 @@ Chrome 标签管理扩展：域名 / 一级 Path 整理、精确去重、搜索�
 | 🕘 搜索记忆 | 默认保留 1 条，可设置 n 条或 0；点击输入框显示历史下拉列表 |
 | 标签操作 | 激活、复制、关闭标签和关闭整组 |
 | 🎨 多窗口配色 | 每个标签行显示窗口色竖线，各窗口活动标签使用同色背景高亮 |
-| ⌨️ 快捷键 | `Ctrl+Shift+Z` / macOS `⌘⇧Z` 切换侧边栏，打开时聚焦搜索框 |
+| ⌨️ 快捷键 | 在 Chrome 的扩展快捷键页自行绑定；切换侧边栏，打开时聚焦搜索框 |
 | ⚙️ 设置弹窗 | 齿轮按钮打开；保存才写入，取消、Esc 或点击弹窗外丢弃未保存修改 |
 | 🌗 主题 | 浅色、深色，可通过工具栏或设置切换 |
 
@@ -116,7 +122,7 @@ Chrome 不提供旧标签的真实创建时间。插件记录新标签创建时�
 - 删除输入内容恢复完整列表。搜索不改变原生标签或分组。
 - 初次打开界面、图标打开或快捷键打开时尝试聚焦，等待侧边栏挂载后短暂重试；不会在每次标签操作后抢焦点。
 
-快捷键在 `chrome://extensions/shortcuts` 中配置，默认 `Ctrl+Shift+Z`，macOS 为 `⌘⇧Z`。默认组合可能被浏览器、其他扩展或系统占用，也可能保留用户之前的绑定，需要手动确认。
+插件不提供自定义快捷键设置，也不指定默认组合键。请打开 `chrome://extensions/shortcuts`，找到 **PowerfulTab → 打开/关闭标签侧边栏，打开时聚焦搜索框**，直接在 Chrome 中绑定或清除快捷键。Chrome 中已有的绑定会保留；如需停用，请在该页面清除。
 
 侧边栏通过连接上报可见状态；快捷键打开时直接调用 `sidePanel.open()`，避免先执行异步查询丢失用户手势。支持 `sidePanel.close()` 的 Chrome 直接关闭；旧版本使用禁用 / 恢复面板的兼容方式，实际效果需在对应 Chrome 版本验证。
 
@@ -192,7 +198,7 @@ npm run build
 
 源码修改后需重新 `npm run build`，在扩展页点击重新加载，并关闭后重新打开已有侧边栏 / 标签管理页面。重新加载旧 ZIP 的解压目录不会自动获取仓库 `dist/` 的新代码。
 
-`release/dist.zip` 由 `npm run release` 生成，普通 build 不更新 ZIP。现有 `release/screenshots/` 为历史界面截图，可能仍含 CosmoTab、旧去重模式和旧操作布局，不能作为当前能力依据。
+`release/dist.zip` 由 `npm run release` 生成，普通 build 不更新 ZIP。宣传图块已更新为 PowerfulTab；当前界面的真实产品截图仍需按 `release/05-screenshots.md` 拍摄，不能用宣传图代替。
 
 ## 开发与代码入口
 
@@ -241,10 +247,25 @@ src/
 
 快捷键通过 Manifest `commands` 配置，不是额外权限。
 
-[隐私政策](https://peeeng.github.io/PowerfulTab/privacy) · [反馈 Issue](https://github.com/Peeeng/PowerfulTab/issues) · [MIT License](LICENSE)
+[隐私政策正文](docs/privacy.md) · [反馈 Issue](https://github.com/Peeeng/PowerfulTab/issues) · [MIT License](LICENSE)
+
+### 隐私政策与商店上架
+
+仅在自己的 Chrome 中加载本地扩展，不需要填写商店隐私政策网址。上架 Chrome Web Store 时则需要：按照 [Chrome 商店官方隐私政策要求](https://developer.chrome.com/docs/webstore/program-policies/privacy)，处理用户数据的扩展必须提供准确、最新的隐私政策。PowerfulTab 会在本地读取 URL、标题并保存搜索历史等数据；不上传数据不代表不处理数据。
+
+政策正文已在 [docs/privacy.md](docs/privacy.md)，无需额外购买域名或服务器，可使用 GitHub Pages：
+
+1. 将最新的 `docs/` 文档提交并推送到 `Peeeng/PowerfulTab` 的 `main` 分支。
+2. 在 GitHub 仓库进入 **Settings → Pages**，Source 选择 **Deploy from a branch**。
+3. Branch 选择 **main**，目录选择 **/docs**，保存并等待部署完成。
+4. 用未登录的浏览器确认 `https://peeeng.github.io/PowerfulTab/privacy` 能打开完整政策，不返回 404，也不要求登录。
+5. 将该网址填入 Chrome Web Store 开发者后台的 **Privacy policy / 隐私政策 URL** 字段，并如实填写数据使用披露。
+
+这是预期部署地址，不表示页面已经发布；部署前可直接阅读仓库内的政策正文。政策说明本地处理的数据、使用目的、不上传与不共享、清除方式，以及联系邮箱 `Peeeng520@gmail.com`。功能或数据处理方式变化时应同步更新政策。
 
 ## 🐱 设计
 
+- 正式品牌图标为蓝紫色叠放浏览器标签与闪电；唯一源文件是 `src/assets/icons/icon.svg`。运行 `node scripts/render-icons.mjs` 生成扩展各尺寸 PNG，`npm run promo` 生成同款商店图标与宣传图，`npm run release` 会先重新生成扩展图标。
 - 手绘猫咪与品牌图标，保留原有轻松的视觉风格。
 - 辉光“一键整理”按钮，GSAP 3D 视差与悬停交互。
 - 浅色 / 深色主题、窗口彩色竖线与活动标签高亮。

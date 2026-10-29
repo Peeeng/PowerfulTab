@@ -1,6 +1,6 @@
-## CosmoTab · Chrome Web Store 发布材料包
+## PowerfulTab · Chrome Web Store 发布材料包
 
-本目录包含上架 Chrome Web Store 所需的全部素材与文档。  
+本目录包含 Chrome Web Store 发布文案、权限说明和打包工具。当前界面的真实截图需另行拍摄，隐私政策需部署到可公开访问的网址。
 按 `01-checklist.md` 一步步走即可。
 
 ### 目录索引

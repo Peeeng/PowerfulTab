@@ -9,7 +9,7 @@
 - [ ] 注册 Chrome Web Store 开发者账号
   - 打开 https://chrome.google.com/webstore/devconsole
   - Google 账号登录 → 支付 **$5** 注册费（Visa / Mastercard）
-  - 接受协议、填开发者公开名（建议 `CosmoTab`）
+  - 接受协议、填开发者公开名（如 `Peeeng`，以账号实际信息为准）
 - [ ] 创建公开 GitHub 仓库（如还没）
   - 至少包含 README + LICENSE（建议 MIT）
 - [ ] 把 `release/04-privacy-policy.md` 内容部署到 **GitHub Pages**
@@ -43,7 +43,7 @@
 #### 1. 商店发布信息
 | 字段 | 值（来源） |
 | --- | --- |
-| 名称 | `CosmoTab` |
+| 名称 | `PowerfulTab` |
 | 简短说明 | `02-store-listing.md` § 简短说明（132 字以内） |
 | 详细说明 | `02-store-listing.md` § 详细介绍 |
 | 类别 | `生产工具` (Productivity) |
