@@ -71,7 +71,7 @@ export async function applySort(
         try {
           await chrome.tabs.move(t.id, { index: i });
         } catch (e) {
-          console.warn('[CosmoTab] move failed', t.id, e);
+          console.warn('[PowerfulTab] move failed', t.id, e);
         }
       }
     }
@@ -88,7 +88,7 @@ export async function applySort(
     try {
       await chrome.tabs.move(t.id, { windowId: firstWin, index: i });
     } catch (e) {
-      console.warn('[CosmoTab] move(merged) failed', t.id, e);
+      console.warn('[PowerfulTab] move(merged) failed', t.id, e);
     }
   }
 }

@@ -2,6 +2,8 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import type { LastAccessedMap, TabInfo } from '../../core/types';
 import { applyGroupingRules, groupByDomain, safeHostname } from '../../core/grouping';
 import { matchesTabSearch } from '../../core/search';
+import { useStableTabOrder } from './useStableTabOrder';
+import { useDelayedRecentOrder } from './useDelayedRecentOrder';
 
 interface Props {
   tabs: TabInfo[];
@@ -9,6 +11,7 @@ interface Props {
   lastAccessed: LastAccessedMap;
   createdAt: LastAccessedMap;
   groupTabSort: 'created' | 'accessed';
+  orderRevision: number;
   focusedWindowId?: number;
   groupByFirstPath: boolean;
   pathDomainWhitelist: ReadonlySet<string>;
@@ -193,6 +196,10 @@ function Row({ tab, ts, active, focused, windowHue, showHost, onActivate, onDupl
       data-stale={stale}
       data-show-host={showHost ? '1' : '0'}
       onClick={onActivate}
+      onMouseDown={(e) => {
+        // Mouse activation must not move keyboard focus to a row that may be elsewhere.
+        if (e.button === 0 && !(e.target as HTMLElement).closest('button')) e.preventDefault();
+      }}
       role="button"
       tabIndex={0}
       onKeyDown={(e) => {
@@ -236,6 +243,7 @@ export default function CardGrid({
   lastAccessed,
   createdAt,
   groupTabSort,
+  orderRevision,
   focusedWindowId,
   groupByFirstPath,
   pathDomainWhitelist,
@@ -248,6 +256,8 @@ export default function CardGrid({
   onClose,
   onCloseGroup,
 }: Props): JSX.Element {
+  const tabRanks = useStableTabOrder(tabs, groupTabSort === 'created' ? createdAt : lastAccessed, groupTabSort, orderRevision);
+  const recentOrder = useDelayedRecentOrder(tabs, lastAccessed, orderRevision);
   const windowColors = useMemo(() => {
     // 窗口 ID 固定映射到 10 色循环；切换、关闭其他窗口或搜索不会改变其颜色。
     const hues = [210, 30, 145, 270, 330, 185, 60, 115, 245, 0];
@@ -287,23 +297,22 @@ export default function CardGrid({
       .filter((g) => g.tabs.length > 0)
       .map((g) => {
         const sorted = [...g.tabs].sort(
-          (a, b) => groupTabSort === 'created'
-            ? (createdAt[a.id] ?? a.id) - (createdAt[b.id] ?? b.id)
-            : (lastAccessed[b.id] ?? 0) - (lastAccessed[a.id] ?? 0),
+          (a, b) => (tabRanks.get(a.id) ?? 0) - (tabRanks.get(b.id) ?? 0),
         );
         const hottest = Math.max(0, ...sorted.map((tab) => lastAccessed[tab.id] ?? 0));
         return { ...g, tabs: sorted, hottest };
       });
     return displayGroups;
-  }, [plannedGroups, groupOrder, lastAccessed, createdAt, groupTabSort, searchQuery]);
+  }, [plannedGroups, groupOrder, lastAccessed, tabRanks, searchQuery]);
 
   const recent = useMemo(() => {
-    return [...tabs]
+    const byId = new Map(tabs.map((tab) => [tab.id, tab]));
+    return recentOrder
+      .map((id) => byId.get(id))
+      .filter((tab): tab is TabInfo => tab !== undefined)
       .filter((tab) => matchesTabSearch(tab, searchQuery))
-      .filter((t) => (lastAccessed[t.id] ?? 0) > 0)
-      .sort((a, b) => (lastAccessed[b.id] ?? 0) - (lastAccessed[a.id] ?? 0))
       .slice(0, 8);
-  }, [tabs, lastAccessed, searchQuery]);
+  }, [tabs, recentOrder, searchQuery]);
 
   const totalDomains = groups.length;
   const totalTabs = groups.reduce((count, group) => count + group.tabs.length, 0);

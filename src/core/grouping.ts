@@ -193,7 +193,7 @@ export async function applyTabGroups(
     try {
       await chrome.tabs.ungroup(allIds);
     } catch (e) {
-      console.warn('[CosmoTab] ungroup before regroup failed', e);
+      console.warn('[PowerfulTab] ungroup before regroup failed', e);
     }
   }
 
@@ -222,7 +222,7 @@ export async function applyTabGroups(
       }
       created += 1;
     } catch (e) {
-      console.warn('[CosmoTab] group failed for', g.hostname, e);
+      console.warn('[PowerfulTab] group failed for', g.hostname, e);
     }
   }
   return created;

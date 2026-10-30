@@ -5,6 +5,14 @@ All notable changes to **PowerfulTab** will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.3] - 2026-10-30
+
+- 同窗口点击不再重复聚焦窗口；激活和访问时间变化只局部更新列表，避免重复全量刷新。
+- 新增 Ctrl+Shift+F 聚焦搜索栏命令，与侧边栏开关快捷键独立；macOS 使用 Control。
+- Recent 新成员与访问排序在活动停止 10 秒后更新，避免新标签进入时立即替换列表行。
+- npm 项目名与本地目录统一为 PowerfulTab，保留旧存储键。
+- 修复点击标签后列表跳跃：本次使用期间固定组内与 Recent 已有行序，仅更新时间和高亮；主动整理或修改排序方式后重新排序。
+
 ## [0.1.2] - 2026-10-29
 
 - 产品名称与项目链接更新为 PowerfulTab，联系邮箱为 Peeeng520@gmail.com。

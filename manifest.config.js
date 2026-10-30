@@ -2,7 +2,7 @@ import { defineManifest } from '@crxjs/vite-plugin';
 export default defineManifest({
     manifest_version: 3,
     name: 'PowerfulTab',
-    version: '0.1.2',
+    version: '0.1.3',
     description: '一键整理标签页：域名 / Path 分组、完整 URL 精确去重、标题与 URL 搜索、多窗口配色、复制标签和撤销关闭。本地处理，不上传数据。',
     homepage_url: 'https://github.com/Peeeng/PowerfulTab',
     action: {
@@ -16,6 +16,10 @@ export default defineManifest({
         default_path: 'sidepanel.html',
     },
     commands: {
+        'focus-search-input': {
+            suggested_key: { default: 'Ctrl+Shift+F', mac: 'MacCtrl+Shift+F' },
+            description: '聚焦标签搜索栏（不关闭侧边栏）',
+        },
         'focus-search': {
             description: '打开/关闭标签侧边栏，打开时聚焦搜索框',
         },

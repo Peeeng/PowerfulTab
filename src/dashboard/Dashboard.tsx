@@ -9,6 +9,7 @@ import type {
 } from '../core/types';
 import { getCreatedAtMap, getSettings, setSettings } from '../core/storage';
 import { queryAllTabs } from '../core/tabs';
+import { activateTab } from '../core/activate-tab';
 import Toolbar from './components/Toolbar';
 import CardGrid from './components/CardGrid';
 import SettingsDialog from '../components/SettingsDialog';
@@ -45,17 +46,22 @@ export default function Dashboard(): JSX.Element {
   const [undo, setUndo] = useState<UndoState | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [orderRevision, setOrderRevision] = useState(0);
 
   const undoTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const listRef = useRef<HTMLElement>(null);
   const listScrollTop = useRef(0);
+  const refreshVersion = useRef(0);
+  const currentWindowId = useRef<number>();
+  const latestActiveTabs = useRef(new Map<number, number>());
 
   useLayoutEffect(() => {
-    // 激活标签会更新 Recent 和组内访问排序，保持用户所在的滚动位置。
+    // 行顺序不随激活改变；仍保留刷新前的滚动位置。
     if (listRef.current) listRef.current.scrollTop = listScrollTop.current;
   }, [tabs, lastAccessed, createdAt, focusedWindowId]);
 
-  const refresh = async (): Promise<void> => {
+  const refresh = async (resetOrder = false): Promise<void> => {
+    const version = ++refreshVersion.current;
     const [s, list, r, created, focused] = await Promise.all([
       getSettings(),
       queryAllTabs(),
@@ -63,14 +69,21 @@ export default function Dashboard(): JSX.Element {
       getCreatedAtMap(),
       chrome.windows.getLastFocused(),
     ]);
+    // Ignore older queries that completed after a newer event/refresh.
+    if (version !== refreshVersion.current) return;
     setSettingsState(s);
-    setTabs(list);
+    setTabs(list.map((tab) => {
+      const activeId = latestActiveTabs.current.get(tab.windowId);
+      return activeId == null ? tab : { ...tab, active: tab.id === activeId };
+    }));
     if (r.ok && r.data) setLastAccessed(r.data);
     setCreatedAt(created);
     setFocusedWindowId(focused.id);
+    if (resetOrder) setOrderRevision((value) => value + 1);
   };
 
   useEffect(() => {
+    void chrome.windows.getCurrent().then((window) => { currentWindowId.current = window.id; });
     void refresh();
     const handler = (): void => {
       void refresh();
@@ -79,17 +92,28 @@ export default function Dashboard(): JSX.Element {
     chrome.tabs.onRemoved.addListener(handler);
     chrome.tabs.onUpdated.addListener(handler);
     chrome.tabs.onMoved.addListener(handler);
-    chrome.tabs.onActivated.addListener(handler);
-    chrome.windows.onFocusChanged.addListener(handler);
+    const onActivated = ({ tabId, windowId }: chrome.tabs.TabActiveInfo): void => {
+      latestActiveTabs.current.set(windowId, tabId);
+      setTabs((previous) => previous.map((tab) => tab.windowId === windowId
+        ? { ...tab, active: tab.id === tabId }
+        : tab));
+    };
+    const onWindowFocus = (windowId: number): void => {
+      if (windowId !== chrome.windows.WINDOW_ID_NONE) setFocusedWindowId(windowId);
+    };
+    chrome.tabs.onActivated.addListener(onActivated);
+    chrome.windows.onFocusChanged.addListener(onWindowFocus);
 
     // background 写入 lastAccessed → 通过 storage 变化感知，立刻拉新
     const onStorageChange = (
       changes: { [key: string]: chrome.storage.StorageChange },
       area: string,
     ): void => {
-      if (area === 'local' && (changes['cosmotab.lastAccessed'] || changes['cosmotab.settings'])) {
-        void refresh();
+      if (area !== 'local') return;
+      if (changes['cosmotab.lastAccessed']) {
+        setLastAccessed((changes['cosmotab.lastAccessed'].newValue as LastAccessedMap | undefined) ?? {});
       }
+      if (changes['cosmotab.settings']) void refresh();
     };
     chrome.storage.onChanged.addListener(onStorageChange);
 
@@ -103,8 +127,8 @@ export default function Dashboard(): JSX.Element {
       chrome.tabs.onRemoved.removeListener(handler);
       chrome.tabs.onUpdated.removeListener(handler);
       chrome.tabs.onMoved.removeListener(handler);
-      chrome.tabs.onActivated.removeListener(handler);
-      chrome.windows.onFocusChanged.removeListener(handler);
+      chrome.tabs.onActivated.removeListener(onActivated);
+      chrome.windows.onFocusChanged.removeListener(onWindowFocus);
       chrome.storage.onChanged.removeListener(onStorageChange);
       clearInterval(tick);
     };
@@ -181,7 +205,7 @@ export default function Dashboard(): JSX.Element {
     } else {
       setHint(`失败：${r.error ?? 'unknown'}`);
     }
-    void refresh();
+    void refresh(true);
   };
 
   const onDedupe = async (): Promise<void> => {
@@ -195,8 +219,8 @@ export default function Dashboard(): JSX.Element {
 
   const onActivate = (tab: TabInfo): void => {
     listScrollTop.current = listRef.current?.scrollTop ?? 0;
-    void chrome.tabs.update(tab.id, { active: true });
-    void chrome.windows.update(tab.windowId, { focused: true });
+    void activateTab(tab, currentWindowId.current ?? focusedWindowId)
+      .catch(() => setHint('切换标签失败'));
   };
 
   const onDuplicate = (tab: TabInfo): void => {
@@ -244,6 +268,7 @@ export default function Dashboard(): JSX.Element {
           lastAccessed={lastAccessed}
           createdAt={createdAt}
           groupTabSort={settings.groupTabSort}
+          orderRevision={orderRevision}
           focusedWindowId={focusedWindowId}
           groupByFirstPath={settings.groupMode === 'path'}
           pathDomainWhitelist={pathDomainWhitelist}

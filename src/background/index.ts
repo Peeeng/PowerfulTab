@@ -44,6 +44,19 @@ chrome.runtime.onConnect.addListener((port) => {
 });
 
 chrome.commands.onCommand.addListener((command, tab) => {
+  if (command === 'focus-search-input') {
+    // Open even an existing panel to bring focus back from the web page.
+    // Keep this call synchronous with the Chrome command's user gesture.
+    if (tab?.windowId == null && tab?.id == null) return;
+    const options = tab.windowId != null ? { windowId: tab.windowId } : { tabId: tab.id! };
+    void chrome.sidePanel.open(options).then(() => {
+      if (tab?.windowId != null) notifySearch(tab.windowId);
+      else void chrome.windows.getLastFocused().then((window) => {
+        if (window.id != null) notifySearch(window.id);
+      });
+    }).catch((error) => console.warn('[PowerfulTab] focus search failed', error));
+    return;
+  }
   if (command !== 'focus-search') return;
   const toggle = (windowId: number, activeTabId?: number): void => {
     if (visiblePanels.has(windowId)) {
@@ -60,7 +73,7 @@ chrome.commands.onCommand.addListener((command, tab) => {
     } else {
       // 必须直接调用 open，不能先 await 查询，否则可能丢失用户手势。
       void chrome.sidePanel.open({ windowId }).then(() => notifySearch(windowId))
-        .catch((error) => console.warn('[CosmoTab] toggle search panel failed', error));
+        .catch((error) => console.warn('[PowerfulTab] toggle search panel failed', error));
     }
   };
   if (tab?.windowId != null) toggle(tab.windowId, tab.id);

@@ -10,7 +10,7 @@ export function registerGroupInheritance(): void {
     for (const tab of active) {
       if (tab.id != null) remember(tab.windowId, tab.id);
     }
-  }).catch((error) => console.warn('[CosmoTab] active history init failed', error));
+  }).catch((error) => console.warn('[PowerfulTab] active history init failed', error));
 
   function remember(windowId: number, tabId: number): void {
     history[windowId] = [tabId, ...(history[windowId] ?? []).filter((id) => id !== tabId)].slice(0, 2);
@@ -18,7 +18,7 @@ export function registerGroupInheritance(): void {
 
   function enqueue(action: () => Promise<void>): void {
     pending = pending.then(action).catch((error) => {
-      console.warn('[CosmoTab] group inheritance failed', error);
+      console.warn('[PowerfulTab] group inheritance failed', error);
     });
   }
 

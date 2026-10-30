@@ -101,7 +101,7 @@ export async function dedupeOnly(): Promise<number> {
     try {
       await chrome.tabs.remove(toClose);
     } catch (e) {
-      console.warn('[CosmoTab] remove failed', e);
+      console.warn('[PowerfulTab] remove failed', e);
     }
   }
   return toClose.length;

@@ -96,17 +96,28 @@ export default function TabSearch({ query, onQuery, historyCount }: Props): JSX.
         if (!disposed && window.id === message.windowId) requestFocus();
       });
     };
+    const onSearchShortcut = (event: KeyboardEvent): void => {
+      if (event.isComposing || !event.ctrlKey || !event.shiftKey || event.altKey || event.metaKey
+          || event.code !== 'KeyF') return;
+      // Standalone dashboard pages can also focus without a background command.
+      // Side panels use Chrome's configured shortcut, rather than hard-coding a second binding.
+      if (location.pathname.endsWith('/sidepanel.html')) return;
+      event.preventDefault();
+      requestFocus();
+    };
     requestFocus();
     // 只在初次挂载或明确的打开/快捷键消息时聚焦。
     // 激活、复制、删除标签也会触发窗口 focus，不能把它当作打开界面。
     document.addEventListener('pointerdown', cancelFocus);
     document.addEventListener('keydown', cancelFocus);
+    document.addEventListener('keydown', onSearchShortcut);
     chrome.runtime.onMessage.addListener(onMessage);
     return () => {
       disposed = true;
       cancelFocus();
       document.removeEventListener('pointerdown', cancelFocus);
       document.removeEventListener('keydown', cancelFocus);
+      document.removeEventListener('keydown', onSearchShortcut);
       chrome.runtime.onMessage.removeListener(onMessage);
     };
   }, []);

@@ -22,7 +22,7 @@
 > "Use of permissions is not adequately justified."
 
 **最容易踩雷**：
-- `<all_urls>` host_permission（CosmoTab 不需要，**确认 manifest 里没有**）
+- `<all_urls>` host_permission（PowerfulTab 不需要，**确认 manifest 里没有**）
 - `history` / `cookies` / `webRequest`（用不到不要加）
 - `tabs` 申请了但描述里说"仅整理标签"，需要补一句"读取 URL/title 用于分组与去重"
 
@@ -56,7 +56,7 @@
 
 > "Your product does not provide sufficient functionality."
 
-CosmoTab 不会触发这条，因为：
+PowerfulTab 不会触发这条，因为：
 - 三种去重模式 + 撤销 + 白名单 + 侧边栏属于**集成度较高**的整理方案
 - 中文描述里强调"按最近访问排序" + "撤销关闭" + "Domain 模式" 三大差异化卖点
 
