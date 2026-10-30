@@ -114,9 +114,9 @@ export default function TabSearch({ query, onQuery, historyCount }: Props): JSX.
       }}>
         <div className="cosmo-search__field">
           <input ref={inputRef} autoFocus type="search" autoComplete="off" role="combobox"
-            aria-label="搜索 URL 或标签名称" aria-autocomplete="list" aria-expanded={open && history.length > 0}
+            aria-label="搜索 URL、标签名称或拼音首字母" aria-autocomplete="list" aria-expanded={open && history.length > 0}
             aria-controls="search-history" aria-activedescendant={open && selected >= 0 ? `search-history-${selected}` : undefined}
-            placeholder="搜索 URL 或标签名称…" value={query}
+            placeholder="搜索 URL、名称或拼音首字母…" value={query}
             onFocus={() => { setOpen(true); setSelected(-1); }} onClick={() => setOpen(true)}
             onBlur={() => { setOpen(false); if (!composing.current) remember(query); }}
             onCompositionStart={() => { composing.current = true; clearTimeout(saveTimer.current); }}
