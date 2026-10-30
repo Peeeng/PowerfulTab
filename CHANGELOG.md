@@ -5,6 +5,11 @@ All notable changes to **PowerfulTab** will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.4] - 2026-10-30
+
+- 去掉逐标签侧边栏配置，统一使用全局面板，避免同窗口切换标签时更换实例并重新排序、抢搜索焦点。
+- 开关兼容逻辑不再创建 tabId 专属面板；扩展重新加载或更新后清除旧配置。
+
 ## [0.1.3] - 2026-10-30
 
 - 同窗口点击不再重复聚焦窗口；激活和访问时间变化只局部更新列表，避免重复全量刷新。

@@ -2,7 +2,7 @@ import { defineManifest } from '@crxjs/vite-plugin';
 export default defineManifest({
     manifest_version: 3,
     name: 'PowerfulTab',
-    version: '0.1.3',
+    version: '0.1.4',
     description: '一键整理标签页：域名 / Path 分组、完整 URL 精确去重、标题与 URL 搜索、多窗口配色、复制标签和撤销关闭。本地处理，不上传数据。',
     homepage_url: 'https://github.com/Peeeng/PowerfulTab',
     action: {

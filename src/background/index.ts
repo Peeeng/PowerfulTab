@@ -47,27 +47,24 @@ chrome.commands.onCommand.addListener((command, tab) => {
   if (command === 'focus-search-input') {
     // Open even an existing panel to bring focus back from the web page.
     // Keep this call synchronous with the Chrome command's user gesture.
-    if (tab?.windowId == null && tab?.id == null) return;
-    const options = tab.windowId != null ? { windowId: tab.windowId } : { tabId: tab.id! };
-    void chrome.sidePanel.open(options).then(() => {
-      if (tab?.windowId != null) notifySearch(tab.windowId);
-      else void chrome.windows.getLastFocused().then((window) => {
-        if (window.id != null) notifySearch(window.id);
-      });
+    if (tab?.windowId == null) return;
+    const windowId = tab.windowId;
+    void chrome.sidePanel.open({ windowId }).then(() => {
+      notifySearch(windowId);
     }).catch((error) => console.warn('[PowerfulTab] focus search failed', error));
     return;
   }
   if (command !== 'focus-search') return;
-  const toggle = (windowId: number, activeTabId?: number): void => {
+  const toggle = (windowId: number): void => {
     if (visiblePanels.has(windowId)) {
       const panel = chrome.sidePanel as typeof chrome.sidePanel & { close?: (options: { windowId: number }) => Promise<void> };
       if (panel.close) void panel.close({ windowId }).catch(console.warn);
       else {
-        // 旧版本关闭后恢复可用性，下次无需在用户手势前等待 setOptions。
-        const options = activeTabId != null ? { tabId: activeTabId } : {};
-        void chrome.sidePanel.setOptions({ ...options, enabled: false }).then(() => {
-          visiblePanels.delete(windowId);
-          setTimeout(() => void chrome.sidePanel.setOptions({ ...options, enabled: true, path: 'sidepanel.html' }), 100);
+        // Legacy Chrome has no window-scoped close API. Disable only the global
+        // panel configuration, never create a tab-specific panel instance.
+        void chrome.sidePanel.setOptions({ enabled: false }).then(() => {
+          visiblePanels.clear();
+          setTimeout(() => void chrome.sidePanel.setOptions({ enabled: true, path: 'sidepanel.html' }), 100);
         }).catch(console.warn);
       }
     } else {
@@ -76,19 +73,15 @@ chrome.commands.onCommand.addListener((command, tab) => {
         .catch((error) => console.warn('[PowerfulTab] toggle search panel failed', error));
     }
   };
-  if (tab?.windowId != null) toggle(tab.windowId, tab.id);
+  if (tab?.windowId != null) toggle(tab.windowId);
   else void chrome.windows.getLastFocused().then((window) => {
     if (window.id != null) toggle(window.id);
   });
 });
 
-// 恢复旧版关闭逻辑可能留下的禁用配置。
-void chrome.sidePanel.setOptions({ enabled: true, path: 'sidepanel.html' });
-void chrome.tabs.query({}).then((tabs) => {
-  for (const tab of tabs) {
-    if (tab.id != null) void chrome.sidePanel.setOptions({ tabId: tab.id, enabled: true, path: 'sidepanel.html' });
-  }
-});
+// One global configuration, shared across tabs in each window. Extension reload
+// clears Chromium's old per-tab options; never recreate them on worker startup.
+void chrome.sidePanel.setOptions({ enabled: true, path: 'sidepanel.html' }).catch(console.warn);
 
 // 维护 lastAccessed
 chrome.tabs.onActivated.addListener(({ tabId }) => {
