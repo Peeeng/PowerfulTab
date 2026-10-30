@@ -22,21 +22,6 @@ export default function TabSearch({ query, onQuery, historyCount }: Props): JSX.
   const countRef = useRef(historyCount);
   countRef.current = historyCount;
 
-  useEffect(() => {
-    if (!location.pathname.endsWith('/sidepanel.html')) return;
-    let port: chrome.runtime.Port | undefined;
-    let disposed = false;
-    const report = (): void => {
-      void chrome.windows.getCurrent().then((window) => {
-        if (!disposed && window.id != null) port?.postMessage({ windowId: window.id, visible: document.visibilityState === 'visible' });
-      });
-    };
-    port = chrome.runtime.connect({ name: 'cosmotab-panel-state' });
-    report();
-    document.addEventListener('visibilitychange', report);
-    return () => { disposed = true; document.removeEventListener('visibilitychange', report); port?.disconnect(); };
-  }, []);
-
   const remember = (term: string): void => {
     clearTimeout(saveTimer.current);
     if (!term.trim()) return;

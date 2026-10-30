@@ -20,9 +20,6 @@ export default defineManifest({
             suggested_key: { default: 'Ctrl+Shift+F', mac: 'MacCtrl+Shift+F' },
             description: '聚焦标签搜索栏（不关闭侧边栏）',
         },
-        'focus-search': {
-            description: '打开/关闭标签侧边栏，打开时聚焦搜索框',
-        },
     },
     // 最小权限原则：
     //   tabs        - 读取标签 URL/title/icon 用于分组/去重/展示

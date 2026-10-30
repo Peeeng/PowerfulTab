@@ -1,9 +1,8 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useMemo } from 'react';
 import type { LastAccessedMap, TabInfo } from '../../core/types';
 import { applyGroupingRules, groupByDomain, safeHostname } from '../../core/grouping';
 import { matchesTabSearch } from '../../core/search';
 import { useStableTabOrder } from './useStableTabOrder';
-import { useDelayedRecentOrder } from './useDelayedRecentOrder';
 
 interface Props {
   tabs: TabInfo[];
@@ -257,7 +256,6 @@ export default function CardGrid({
   onCloseGroup,
 }: Props): JSX.Element {
   const tabRanks = useStableTabOrder(tabs, groupTabSort === 'created' ? createdAt : lastAccessed, groupTabSort, orderRevision);
-  const recentOrder = useDelayedRecentOrder(tabs, lastAccessed, orderRevision);
   const windowColors = useMemo(() => {
     // 窗口 ID 固定映射到 10 色循环；切换、关闭其他窗口或搜索不会改变其颜色。
     const hues = [210, 30, 145, 270, 330, 185, 60, 115, 245, 0];
@@ -270,29 +268,9 @@ export default function CardGrid({
   const plannedGroups = useMemo(() => applyGroupingRules(
     groupByDomain(tabs, groupByFirstPath, pathDomainWhitelist), minGroupTabs, maxGroupCount,
   ), [tabs, groupByFirstPath, pathDomainWhitelist, minGroupTabs, maxGroupCount]);
-  const [groupOrder, setGroupOrder] = useState<string[]>([]);
-  const initializedOrder = useRef(false);
-  // 只由分组数量变化触发计时，访问时间刷新和搜索不会重置倒计时。
-  const groupCounts = JSON.stringify(plannedGroups.map((group) => [group.key, group.tabs.length]));
-  useEffect(() => {
-    const order = (JSON.parse(groupCounts) as [string, number][]).map(([key]) => key);
-    if (!initializedOrder.current && order.length > 0) {
-      initializedOrder.current = true;
-      setGroupOrder(order);
-      return;
-    }
-    const timer = setTimeout(() => setGroupOrder(order), 30_000);
-    return () => clearTimeout(timer);
-  }, [groupCounts]);
   const groups = useMemo(() => {
-    const ranks = new Map(groupOrder.map((key, index) => [key, index]));
-    const selected = [...plannedGroups].sort((a, b) => {
-      if (a.key === '__other__') return 1;
-      if (b.key === '__other__') return -1;
-      return (ranks.get(a.key) ?? groupOrder.length) - (ranks.get(b.key) ?? groupOrder.length);
-    });
     // 先计算完整分组再筛选，避免搜索让原组因不足最少标签数而归入 other。
-    const displayGroups = selected
+    const displayGroups = plannedGroups
       .map((g) => ({ ...g, tabs: g.tabs.filter((tab) => matchesTabSearch(tab, searchQuery)) }))
       .filter((g) => g.tabs.length > 0)
       .map((g) => {
@@ -303,16 +281,14 @@ export default function CardGrid({
         return { ...g, tabs: sorted, hottest };
       });
     return displayGroups;
-  }, [plannedGroups, groupOrder, lastAccessed, tabRanks, searchQuery]);
+  }, [plannedGroups, lastAccessed, tabRanks, searchQuery]);
 
   const recent = useMemo(() => {
-    const byId = new Map(tabs.map((tab) => [tab.id, tab]));
-    return recentOrder
-      .map((id) => byId.get(id))
-      .filter((tab): tab is TabInfo => tab !== undefined)
-      .filter((tab) => matchesTabSearch(tab, searchQuery))
+    return [...tabs]
+      .filter((tab) => (lastAccessed[tab.id] ?? 0) > 0 && matchesTabSearch(tab, searchQuery))
+      .sort((a, b) => (lastAccessed[b.id] ?? 0) - (lastAccessed[a.id] ?? 0))
       .slice(0, 8);
-  }, [tabs, recentOrder, searchQuery]);
+  }, [tabs, lastAccessed, searchQuery]);
 
   const totalDomains = groups.length;
   const totalTabs = groups.reduce((count, group) => count + group.tabs.length, 0);

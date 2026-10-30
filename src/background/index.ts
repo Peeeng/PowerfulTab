@@ -29,20 +29,6 @@ chrome.action.onClicked.addListener((tab) => {
   if (tab.windowId != null) notifySearch(tab.windowId);
 });
 
-const visiblePanels = new Set<number>();
-chrome.runtime.onConnect.addListener((port) => {
-  if (port.name !== 'cosmotab-panel-state') return;
-  let windowId: number | undefined;
-  port.onMessage.addListener((message: { windowId: number; visible: boolean }) => {
-    windowId = message.windowId;
-    if (message.visible) visiblePanels.add(windowId);
-    else visiblePanels.delete(windowId);
-  });
-  port.onDisconnect.addListener(() => {
-    if (windowId != null) visiblePanels.delete(windowId);
-  });
-});
-
 chrome.commands.onCommand.addListener((command, tab) => {
   if (command === 'focus-search-input') {
     // Open even an existing panel to bring focus back from the web page.
@@ -54,29 +40,7 @@ chrome.commands.onCommand.addListener((command, tab) => {
     }).catch((error) => console.warn('[PowerfulTab] focus search failed', error));
     return;
   }
-  if (command !== 'focus-search') return;
-  const toggle = (windowId: number): void => {
-    if (visiblePanels.has(windowId)) {
-      const panel = chrome.sidePanel as typeof chrome.sidePanel & { close?: (options: { windowId: number }) => Promise<void> };
-      if (panel.close) void panel.close({ windowId }).catch(console.warn);
-      else {
-        // Legacy Chrome has no window-scoped close API. Disable only the global
-        // panel configuration, never create a tab-specific panel instance.
-        void chrome.sidePanel.setOptions({ enabled: false }).then(() => {
-          visiblePanels.clear();
-          setTimeout(() => void chrome.sidePanel.setOptions({ enabled: true, path: 'sidepanel.html' }), 100);
-        }).catch(console.warn);
-      }
-    } else {
-      // 必须直接调用 open，不能先 await 查询，否则可能丢失用户手势。
-      void chrome.sidePanel.open({ windowId }).then(() => notifySearch(windowId))
-        .catch((error) => console.warn('[PowerfulTab] toggle search panel failed', error));
-    }
-  };
-  if (tab?.windowId != null) toggle(tab.windowId);
-  else void chrome.windows.getLastFocused().then((window) => {
-    if (window.id != null) toggle(window.id);
-  });
+
 });
 
 // One global configuration, shared across tabs in each window. Extension reload
