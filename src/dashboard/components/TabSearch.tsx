@@ -6,9 +6,10 @@ interface Props {
   query: string;
   onQuery: (query: string) => void;
   historyCount: number;
+  clearTimeoutSeconds: number;
 }
 
-export default function TabSearch({ query, onQuery, historyCount }: Props): JSX.Element {
+export default function TabSearch({ query, onQuery, historyCount, clearTimeoutSeconds }: Props): JSX.Element {
   const [history, setHistory] = useState<string[]>([]);
   const historyRef = useRef<string[]>([]);
   const [error, setError] = useState('');
@@ -16,6 +17,10 @@ export default function TabSearch({ query, onQuery, historyCount }: Props): JSX.
   const [selected, setSelected] = useState(-1);
   const inputRef = useRef<HTMLInputElement>(null);
   const saveTimer = useRef<ReturnType<typeof setTimeout>>();
+  const clearTimer = useRef<ReturnType<typeof setTimeout>>();
+  const [inputActivity, setInputActivity] = useState(0);
+  const onQueryRef = useRef(onQuery);
+  onQueryRef.current = onQuery;
   const writes = useRef(Promise.resolve());
   const composing = useRef(false);
   const edited = useRef(false);
@@ -37,11 +42,31 @@ export default function TabSearch({ query, onQuery, historyCount }: Props): JSX.
   };
   const choose = (term: string): void => {
     onQuery(term);
+    setInputActivity((value) => value + 1);
     remember(term);
     setOpen(false);
     setSelected(-1);
     inputRef.current?.focus();
   };
+
+  useEffect(() => {
+    clearTimeout(clearTimer.current);
+    if (!query || clearTimeoutSeconds <= 0 || composing.current) return;
+    const deadline = Date.now() + Math.min(clearTimeoutSeconds * 1000, Number.MAX_SAFE_INTEGER);
+    const tick = (): void => {
+      const remaining = deadline - Date.now();
+      if (remaining > 0) {
+        // 浏览器计时器只支持 32 位毫秒延迟，长超时分段等待。
+        clearTimer.current = setTimeout(tick, Math.min(remaining, 2_147_483_647));
+        return;
+      }
+      onQueryRef.current('');
+      setOpen(false);
+      setSelected(-1);
+    };
+    tick();
+    return () => clearTimeout(clearTimer.current);
+  }, [query, clearTimeoutSeconds, inputActivity]);
 
   useEffect(() => {
     let disposed = false;
@@ -108,9 +133,9 @@ export default function TabSearch({ query, onQuery, historyCount }: Props): JSX.
             placeholder="搜索 URL、名称或首字母，空格分词…" value={query}
             onFocus={() => { setOpen(true); setSelected(-1); }} onClick={() => setOpen(true)}
             onBlur={() => { setOpen(false); if (!composing.current) remember(query); }}
-            onCompositionStart={() => { composing.current = true; clearTimeout(saveTimer.current); }}
-            onCompositionEnd={(e) => { composing.current = false; schedule(e.currentTarget.value); }}
-            onChange={(e) => { edited.current = true; onQuery(e.target.value); setOpen(true); setSelected(-1); schedule(e.target.value); }}
+            onCompositionStart={() => { composing.current = true; clearTimeout(saveTimer.current); clearTimeout(clearTimer.current); }}
+            onCompositionEnd={(e) => { composing.current = false; schedule(e.currentTarget.value); setInputActivity((value) => value + 1); }}
+            onChange={(e) => { edited.current = true; onQuery(e.target.value); setInputActivity((value) => value + 1); setOpen(true); setSelected(-1); schedule(e.target.value); }}
             onKeyDown={(e) => {
               if (e.nativeEvent.isComposing) return;
               if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {

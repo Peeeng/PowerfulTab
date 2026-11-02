@@ -269,7 +269,8 @@ export default function Dashboard(): JSX.Element {
         void refresh();
       }} />}
 
-      <TabSearch query={searchQuery} onQuery={setSearchQuery} historyCount={settings.searchHistoryCount} />
+      <TabSearch query={searchQuery} onQuery={setSearchQuery} historyCount={settings.searchHistoryCount}
+        clearTimeoutSeconds={settings.searchClearTimeoutSeconds} />
 
       <main ref={listRef} className="powerful-dash__main" onScroll={(e) => { listScrollTop.current = e.currentTarget.scrollTop; }}>
         <CardGrid

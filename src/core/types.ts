@@ -38,6 +38,8 @@ export interface Settings {
   minGroupTabs: number;
   groupTabSort: 'created' | 'accessed';
   searchHistoryCount: number;
+  /** 最后一次输入后自动清空搜索的秒数；0 表示关闭。 */
+  searchClearTimeoutSeconds: number;
 }
 
 export interface Whitelist {

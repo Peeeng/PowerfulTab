@@ -26,6 +26,7 @@ const DEFAULT_SETTINGS: Settings = {
   minGroupTabs: 3,
   groupTabSort: 'accessed',
   searchHistoryCount: 1,
+  searchClearTimeoutSeconds: 60,
 };
 
 export async function getCreatedAtMap(): Promise<LastAccessedMap> {
@@ -56,6 +57,10 @@ export function normalizeMinGroupTabs(value: number): number {
   return Math.max(1, Math.floor(value));
 }
 
+export function normalizeSearchClearTimeout(value: number): number {
+  return Number.isFinite(value) ? Math.max(0, Math.floor(value)) : 60;
+}
+
 /** 接受 hostname、URL，以及逗号/空格/换行分隔的输入，返回规范化后的 hostname。 */
 export function parseDomainWhitelist(input: string): string[] {
   const hosts = new Set<string>();
@@ -84,12 +89,14 @@ export async function getSettings(): Promise<Settings> {
   settings.maxGroupCount = normalizeMaxGroupCount(settings.maxGroupCount);
   settings.minGroupTabs = normalizeMinGroupTabs(settings.minGroupTabs);
   settings.searchHistoryCount = Number.isFinite(settings.searchHistoryCount) ? Math.max(0, Math.floor(settings.searchHistoryCount)) : 1;
+  settings.searchClearTimeoutSeconds = normalizeSearchClearTimeout(settings.searchClearTimeoutSeconds);
   return settings;
 }
 
 export async function setSettings(patch: Partial<Settings>): Promise<Settings> {
   const next = { ...(await getSettings()), ...patch };
   next.minGroupTabs = normalizeMinGroupTabs(next.minGroupTabs);
+  next.searchClearTimeoutSeconds = normalizeSearchClearTimeout(next.searchClearTimeoutSeconds);
   await chrome.storage.local.set({ [SETTINGS_KEY]: next });
   return next;
 }

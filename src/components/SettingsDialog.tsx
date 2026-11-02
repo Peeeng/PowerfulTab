@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import type { Settings } from '../core/types';
-import { normalizeMaxGroupCount, normalizeMinGroupTabs, parseDomainWhitelist } from '../core/storage';
+import { normalizeMaxGroupCount, normalizeMinGroupTabs, normalizeSearchClearTimeout, parseDomainWhitelist } from '../core/storage';
 import './settings-dialog.css';
 
 interface Props {
@@ -16,6 +16,7 @@ export default function SettingsDialog({ settings, onSave, onClose }: Props): JS
   const [maxCount, setMaxCount] = useState(String(settings.maxGroupCount));
   const [minTabs, setMinTabs] = useState(String(settings.minGroupTabs));
   const [searchCount, setSearchCount] = useState(String(settings.searchHistoryCount));
+  const [searchTimeout, setSearchTimeout] = useState(String(settings.searchClearTimeoutSeconds));
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
@@ -43,6 +44,7 @@ export default function SettingsDialog({ settings, onSave, onClose }: Props): JS
           maxGroupCount: normalizeMaxGroupCount(Number(maxCount)),
           minGroupTabs: normalizeMinGroupTabs(Number(minTabs)),
           searchHistoryCount: Math.max(0, Math.floor(Number(searchCount))),
+          searchClearTimeoutSeconds: normalizeSearchClearTimeout(Number(searchTimeout)),
         }).then(onClose).catch(() => {
           setError('保存失败，请重试');
           setSaving(false);
@@ -76,6 +78,10 @@ export default function SettingsDialog({ settings, onSave, onClose }: Props): JS
           <input type="number" min="0" step="1" required aria-label="搜索历史保留条数" value={searchCount} onChange={(e) => setSearchCount(e.target.value)} />
         </label>
         <p>默认 1，设为 0 不记录历史。</p>
+        <label className="powerful-settings__row">搜索清空时间
+          <input type="number" min="0" step="1" required aria-label="搜索清空时间（秒）" value={searchTimeout} onChange={(e) => setSearchTimeout(e.target.value)} />
+        </label>
+        <p>单位为秒，默认 60；每次输入重新计时，设为 0 不自动清空。搜索历史不受影响。</p>
         <label className="powerful-settings__row">主题
           <select value={draft.theme} onChange={(e) => setDraft({ ...draft, theme: e.target.value as Settings['theme'] })}>
             <option value="light">明亮</option><option value="dark">深色</option>
