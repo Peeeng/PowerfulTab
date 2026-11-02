@@ -22,6 +22,7 @@ const DEFAULT_SETTINGS: Settings = {
   sortScope: 'perWindow',
   theme: 'light',
   pathDomainWhitelist: [],
+  domainPathWhitelist: [],
   maxGroupCount: 15,
   minGroupTabs: 3,
   groupTabSort: 'accessed',

@@ -14,6 +14,7 @@ interface Props {
   focusedWindowId?: number;
   groupByFirstPath: boolean;
   pathDomainWhitelist: ReadonlySet<string>;
+  domainPathWhitelist: ReadonlySet<string>;
   maxGroupCount: number;
   minGroupTabs: number;
   collapsed: Set<string>;
@@ -254,6 +255,7 @@ export default function CardGrid({
   focusedWindowId,
   groupByFirstPath,
   pathDomainWhitelist,
+  domainPathWhitelist,
   maxGroupCount,
   minGroupTabs,
   collapsed,
@@ -285,8 +287,8 @@ export default function CardGrid({
     return colors;
   }, [tabs]);
   const plannedGroups = useMemo(() => applyGroupingRules(
-    groupByDomain(tabs, groupByFirstPath, pathDomainWhitelist), minGroupTabs, maxGroupCount,
-  ), [tabs, groupByFirstPath, pathDomainWhitelist, minGroupTabs, maxGroupCount]);
+    groupByDomain(tabs, groupByFirstPath, pathDomainWhitelist, domainPathWhitelist), minGroupTabs, maxGroupCount,
+  ), [tabs, groupByFirstPath, pathDomainWhitelist, domainPathWhitelist, minGroupTabs, maxGroupCount]);
   const groups = useMemo(() => {
     // 先计算完整分组再筛选，避免搜索让原组因不足最少标签数而归入 other。
     const displayGroups = plannedGroups

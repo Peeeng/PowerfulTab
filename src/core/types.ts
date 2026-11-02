@@ -32,6 +32,8 @@ export interface Settings {
   theme: Theme;
   /** Path 模式下仅按域名分组的 hostname，不改变去重规则。 */
   pathDomainWhitelist: string[];
+  /** 域名模式下改按一级 Path 分组的 hostname，不改变去重规则。 */
+  domainPathWhitelist: string[];
   /** 最大最终分组数（包含 other）。 */
   maxGroupCount: number;
   /** 预分组达到此标签数量才独立成组，否则归入 other。 */

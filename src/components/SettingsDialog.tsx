@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { cloneElement, useEffect, useId, useRef, useState, type ReactElement } from 'react';
 import type { Settings } from '../core/types';
 import { normalizeMaxGroupCount, normalizeMinGroupTabs, normalizeSearchClearTimeout, parseDomainWhitelist } from '../core/storage';
 import './settings-dialog.css';
@@ -9,10 +9,38 @@ interface Props {
   onClose: () => void;
 }
 
+function SettingField({ label, hint, multiline = false, children }: {
+  label: string;
+  hint: string;
+  multiline?: boolean;
+  children: ReactElement<{ id?: string; 'aria-describedby'?: string }>;
+}): JSX.Element {
+  const id = useId();
+  const hintId = `${id}-hint`;
+  const [showHint, setShowHint] = useState(false);
+  return (
+    <div className={`powerful-settings__field ${multiline ? 'powerful-settings__field--multiline' : 'powerful-settings__row'}`}
+      onKeyDown={(e) => {
+        if (e.key === 'Escape' && showHint) { e.preventDefault(); e.stopPropagation(); setShowHint(false); }
+      }}>
+      <span className="powerful-settings__name">
+        <label htmlFor={id}>{label}</label>
+        <span className="powerful-settings__help" onMouseEnter={() => setShowHint(true)} onMouseLeave={() => setShowHint(false)}
+          onClick={() => setShowHint(true)}>
+          <span className="powerful-settings__help-icon" aria-hidden="true">?</span>
+          <span id={hintId} role="tooltip" className="powerful-settings__tooltip" hidden={!showHint}>{hint}</span>
+        </span>
+      </span>
+      {cloneElement(children, { id, 'aria-describedby': hintId })}
+    </div>
+  );
+}
+
 export default function SettingsDialog({ settings, onSave, onClose }: Props): JSX.Element {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [draft, setDraft] = useState(settings);
   const [whitelist, setWhitelist] = useState(settings.pathDomainWhitelist.join('\n'));
+  const [domainWhitelist, setDomainWhitelist] = useState(settings.domainPathWhitelist.join('\n'));
   const [maxCount, setMaxCount] = useState(String(settings.maxGroupCount));
   const [minTabs, setMinTabs] = useState(String(settings.minGroupTabs));
   const [searchCount, setSearchCount] = useState(String(settings.searchHistoryCount));
@@ -41,6 +69,7 @@ export default function SettingsDialog({ settings, onSave, onClose }: Props): JS
         void onSave({
           ...draft,
           pathDomainWhitelist: parseDomainWhitelist(whitelist),
+          domainPathWhitelist: parseDomainWhitelist(domainWhitelist),
           maxGroupCount: normalizeMaxGroupCount(Number(maxCount)),
           minGroupTabs: normalizeMinGroupTabs(Number(minTabs)),
           searchHistoryCount: Math.max(0, Math.floor(Number(searchCount))),
@@ -51,43 +80,40 @@ export default function SettingsDialog({ settings, onSave, onClose }: Props): JS
         });
       }}>
         <h2 id="settings-title">设置</h2>
-        <label className="powerful-settings__row">整理方式
+        <SettingField label="整理方式" hint="一键整理只分组，不关闭标签。可按域名或一级 Path 分组；去重按钮仅关闭完整链接完全一致的重复标签。">
           <select value={draft.groupMode} onChange={(e) => setDraft({ ...draft, groupMode: e.target.value as Settings['groupMode'] })}>
             <option value="domain">按域名分组</option>
             <option value="path">按一级 Path 分组</option>
           </select>
-        </label>
-        <label htmlFor="settings-whitelist">Path 白名单</label>
-        <textarea id="settings-whitelist" rows={3} value={whitelist} onChange={(e) => setWhitelist(e.target.value)} placeholder="cloud.bytedance.net, example.com" />
-        <p>白名单域名仅按域名分组；支持逗号、空格或换行分隔。</p>
-        <label className="powerful-settings__row">最少标签数
+        </SettingField>
+        {draft.groupMode === 'path' ? <SettingField key="path-whitelist" label="Path 白名单" hint="仅在按 Path 分组时生效：名单内域名改按域名分组。支持逗号、空格或换行分隔，精确匹配域名。">
+          <textarea className="powerful-settings__whitelist" rows={2} value={whitelist} onChange={(e) => setWhitelist(e.target.value)} placeholder="example.com" />
+        </SettingField> : <SettingField key="domain-whitelist" label="域名白名单" hint="仅在按域名分组时生效：名单内域名改按一级 Path 分组。支持逗号、空格或换行分隔，精确匹配域名。">
+          <textarea className="powerful-settings__whitelist" rows={2} value={domainWhitelist} onChange={(e) => setDomainWhitelist(e.target.value)} placeholder="example.com" />
+        </SettingField>}
+        <SettingField label="最少标签数" hint="默认 3 个；预分组标签数达到该值才独立成组，否则归入 other。">
           <input type="number" min="1" step="1" required aria-label="最少标签数" value={minTabs} onChange={(e) => setMinTabs(e.target.value)} />
-        </label>
-        <p>默认 3 个；预分组标签数达到该值才独立成组，否则归入 other。</p>
-        <label className="powerful-settings__row">最多分组数
+        </SettingField>
+        <SettingField label="最多分组数" hint="始终生效，默认 15 个（含 other）；大组优先，超限的小组合并到 other。">
           <input type="number" min="1" step="1" required aria-label="最大分组数" value={maxCount} onChange={(e) => setMaxCount(e.target.value)} />
-        </label>
-        <p>始终生效，默认 15 个（含 other）；大组优先，超限的小组合并到 other。</p>
-        <label className="powerful-settings__row">组内标签排序
+        </SettingField>
+        <SettingField label="组内标签排序" hint="创建时间从早到晚，访问时间从近到远；需要改变顺序时防抖 3 秒。安装前已有标签按首次记录顺序兜底。">
           <select value={draft.groupTabSort} onChange={(e) => setDraft({ ...draft, groupTabSort: e.target.value as Settings['groupTabSort'] })}>
             <option value="created">创建时间</option>
             <option value="accessed">访问时间</option>
           </select>
-        </label>
-        <label className="powerful-settings__row">搜索框保留数
-          <input type="number" min="0" step="1" required aria-label="搜索历史保留条数" value={searchCount} onChange={(e) => setSearchCount(e.target.value)} />
-        </label>
-        <p>默认 1，设为 0 不记录历史。</p>
-        <label className="powerful-settings__row">搜索清空时间
+        </SettingField>
+        <SettingField label="搜索记录保留" hint="默认保留 1 条搜索记录，设为 0 不记录历史。">
+          <input type="number" min="0" step="1" required aria-label="搜索记录保留条数" value={searchCount} onChange={(e) => setSearchCount(e.target.value)} />
+        </SettingField>
+        <SettingField label="搜索清空时间" hint="单位为秒，默认 60；每次输入重新计时，设为 0 不自动清空。搜索历史不受影响。">
           <input type="number" min="0" step="1" required aria-label="搜索清空时间（秒）" value={searchTimeout} onChange={(e) => setSearchTimeout(e.target.value)} />
-        </label>
-        <p>单位为秒，默认 60；每次输入重新计时，设为 0 不自动清空。搜索历史不受影响。</p>
-        <label className="powerful-settings__row">主题
+        </SettingField>
+        <SettingField label="主题" hint="切换明亮或深色界面。">
           <select value={draft.theme} onChange={(e) => setDraft({ ...draft, theme: e.target.value as Settings['theme'] })}>
             <option value="light">明亮</option><option value="dark">深色</option>
           </select>
-        </label>
-        <p>一键整理只分组。去重仅关闭完整链接完全一致的重复标签。</p>
+        </SettingField>
         {error && <p role="alert">{error}</p>}
         <div className="powerful-settings__actions">
           <button type="button" disabled={saving} onClick={onClose}>取消</button>

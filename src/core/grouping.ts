@@ -44,14 +44,18 @@ export function firstPathSegment(url: string): string {
   }
 }
 
-/** 生成域名分组键；path 模式使用 `hostname/一级 path`。 */
+/** 生成分组键，仅使用当前模式对应的白名单决定是否拆分一级 Path。 */
 export function tabGroupKey(
   url: string,
   byFirstPath = false,
   domainOnlyHosts: ReadonlySet<string> = new Set(),
+  pathOnlyHosts: ReadonlySet<string> = new Set(),
 ): string {
   const hostname = safeHostname(url);
-  if (!byFirstPath || domainOnlyHosts.has(hostname.toLowerCase())) return hostname;
+  const useFirstPath = byFirstPath
+    ? !domainOnlyHosts.has(hostname.toLowerCase())
+    : pathOnlyHosts.has(hostname.toLowerCase());
+  if (!useFirstPath) return hostname;
   return `${hostname}/${firstPathSegment(url)}`;
 }
 
@@ -110,13 +114,13 @@ export function groupByDomain(
   tabs: TabInfo[],
   byFirstPath = false,
   domainOnlyHosts: ReadonlySet<string> = new Set(),
+  pathOnlyHosts: ReadonlySet<string> = new Set(),
 ): DomainGroup[] {
   const buckets = new Map<string, DomainGroup>();
   for (const t of tabs) {
     const hostname = safeHostname(t.url);
-    const useFirstPath = byFirstPath && !domainOnlyHosts.has(hostname.toLowerCase());
-    const firstPath = useFirstPath ? firstPathSegment(t.url) : '';
-    const key = useFirstPath ? `${hostname}/${firstPath}` : hostname;
+    const key = tabGroupKey(t.url, byFirstPath, domainOnlyHosts, pathOnlyHosts);
+    const firstPath = key !== hostname ? firstPathSegment(t.url) : '';
     let group = buckets.get(key);
     if (!group) {
       group = {

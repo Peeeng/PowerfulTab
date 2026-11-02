@@ -50,6 +50,7 @@ export async function organizeAll(): Promise<OrganizeSummary> {
   ]);
   const wlSet = new Set(wl.urls);
   const pathDomainWhitelist = new Set(settings.pathDomainWhitelist);
+  const domainPathWhitelist = new Set(settings.domainPathWhitelist);
   const eligible = filterEligible(allTabs, wlSet);
 
   const byFirstPath = settings.groupMode === 'path';
@@ -65,7 +66,7 @@ export async function organizeAll(): Promise<OrganizeSummary> {
     arr.push(t);
   }
   for (const [winId, arr] of byWin) {
-    const preGroups = groupByDomain(arr, byFirstPath, pathDomainWhitelist);
+    const preGroups = groupByDomain(arr, byFirstPath, pathDomainWhitelist, domainPathWhitelist);
     const groups = applyGroupingRules(
       preGroups,
       settings.minGroupTabs,

@@ -159,6 +159,7 @@ export default function Dashboard(): JSX.Element {
 
   const themeClass = settings.theme === 'dark' ? 'powerful-dark' : 'powerful-light';
   const pathDomainWhitelist = new Set(settings.pathDomainWhitelist);
+  const domainPathWhitelist = new Set(settings.domainPathWhitelist);
 
   const apply = async (patch: Partial<Settings>): Promise<void> => {
     const next = await setSettings(patch);
@@ -283,6 +284,7 @@ export default function Dashboard(): JSX.Element {
           focusedWindowId={focusedWindowId}
           groupByFirstPath={settings.groupMode === 'path'}
           pathDomainWhitelist={pathDomainWhitelist}
+          domainPathWhitelist={domainPathWhitelist}
           maxGroupCount={settings.maxGroupCount}
           minGroupTabs={settings.minGroupTabs}
           collapsed={collapsed}
