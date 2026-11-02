@@ -13,5 +13,6 @@
 | `04-privacy-policy.md` | **隐私政策正文** — 拷贝到 GitHub Pages 即得公开 URL |
 | `05-screenshots.md` | **截图脚本** — 怎么用 DevTools 拍 1280×800 + 哪些页面要拍 |
 | `06-faq.md` | **审核被拒常见问题 + 答复模板** |
+| `09-v0.1.10.md` | 0.1.10 更新说明与商店上传步骤（材料已准备，尚未提交） |
 | `dist.zip` | 构建产物（运行 `npm run release` 自动生成） |
 | `screenshots/` | promo 图（运行 `npm run promo` 自动生成） |

@@ -86,7 +86,7 @@ export default function SettingsDialog({ settings, onSave, onClose }: Props): JS
             <option value="path">按一级 Path 分组</option>
           </select>
         </SettingField>
-        {draft.groupMode === 'path' ? <SettingField key="path-whitelist" label="Path 白名单" hint="仅在按 Path 分组时生效：名单内域名改按域名分组。支持逗号、空格或换行分隔，精确匹配域名。">
+        {draft.groupMode === 'path' ? <SettingField key="path-whitelist" label="Path白名单" hint="仅在按 Path 分组时生效：名单内域名改按域名分组。支持逗号、空格或换行分隔，精确匹配域名。">
           <textarea className="powerful-settings__whitelist" rows={2} value={whitelist} onChange={(e) => setWhitelist(e.target.value)} placeholder="example.com" />
         </SettingField> : <SettingField key="domain-whitelist" label="域名白名单" hint="仅在按域名分组时生效：名单内域名改按一级 Path 分组。支持逗号、空格或换行分隔，精确匹配域名。">
           <textarea className="powerful-settings__whitelist" rows={2} value={domainWhitelist} onChange={(e) => setDomainWhitelist(e.target.value)} placeholder="example.com" />
