@@ -24,6 +24,7 @@
 ### B. 每次发版
 
 - [ ] 更新 `manifest.config.ts` 的 `version`（必须递增，如 `0.1.0` → `0.1.1`）
+- [ ] 同步更新 `package.json` 的版本号，并在根目录 `CHANGELOG.md` 记录本版本的新增功能、行为变化和修复；核对与发布说明一致，尚未发布时标注状态
 - [ ] 跑 `npm run release` —— 自动 build + zip
   - 输出 `release/dist.zip`，可直接上传商店
 - [ ] 跑 `npm run promo` —— 自动生成商店所需的 4 类图
