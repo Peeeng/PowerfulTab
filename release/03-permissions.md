@@ -1,89 +1,75 @@
-## 03 · 权限解释
+# 03 · Permission justifications
 
-> Dev Console "隐私惯例" 区每个权限都需要单独填写"用途说明"。  
-> 以下文案按当前实现编写，用于填写权限用途说明；是否通过审核由 Chrome Web Store 决定。
+Use these English descriptions in the developer dashboard's Privacy practices section. They reflect implementation, not a guarantee of approval.
 
----
+## Single purpose
 
-### 单一用途说明
-
-```
-PowerfulTab 的单一用途是管理浏览器中打开的标签页：按域名或一级 Path 分组、搜索标题与 URL、通过独立按钮关闭完整 URL 相同的重复标签、复制标签和按时间排序。一键整理只分组，不关闭标签。所有数据处理均在本地完成，不上传信息。
+```text
+PowerfulTab manages open browser tabs: group by domain or path, search titles and URLs, remove exact URL duplicates, and move, duplicate, close, or sort tabs. Organize never closes tabs. All processing is local; tab data is not uploaded.
 ```
 
-### 远程代码
+## Remote code
 
-选择 **“否，我未使用远程代码”**。当前 JavaScript 与依赖随扩展 ZIP 打包，不从远程服务器下载或执行代码。不要为了消除必填提示选择“是”。若界面仍要求说明，可填写：
+Select **No, I am not using remote code**. If a justification field is still required:
 
-```
-本扩展不使用远程代码。所有 JavaScript 和依赖均包含在上传的扩展安装包内，不从远程服务器加载或执行 JavaScript、WebAssembly 或其他可执行代码。
-```
-
-### `tabs`
-
-```
-读取当前打开标签页的 URL、标题、favicon，用于在侧边栏展示标签卡片，并实现按域名分组、去重、按最近访问排序等核心功能。不会修改任何标签内容，不会注入脚本到网页中。
+```text
+PowerfulTab does not use remote code. All JavaScript, dependencies, pinyin dictionaries, and interface translations are bundled in the uploaded extension package. No JavaScript, WebAssembly, or other executable code is downloaded or executed from remote servers.
 ```
 
-### `tabGroups`
+## tabs
 
-```
-执行“一键整理”时，按域名或一级 Path 和用户设置管理各窗口的 Chrome 原生标签组。新标签继承当前分组；整理本身不关闭标签。
-```
-
-### `sessions`
-
-```
-实现用户手动关闭标签或关闭整组后的撤销功能：通过 chrome.sessions.getRecentlyClosed 查询最近关闭的标签会话，再通过 chrome.sessions.restore 恢复。独立去重按钮不产生撤销提示。
+```text
+Reads open tabs' URLs, titles, icons, and activity to display and search tabs, group by domain or path, deduplicate exact URLs, and sort by visit time. It also activates, duplicates, closes, and moves tabs when requested. The extension does not read page bodies or inject scripts into websites. Tab data is processed locally and not uploaded.
 ```
 
-### `storage`
+## tabGroups
 
-```
-使用 chrome.storage.local 保存整理方式、域名白名单、分组数量规则、组内排序、主题、搜索历史及标签创建和访问时间戳；使用 chrome.storage.session 临时保存活动标签 ID 历史，用于新标签继承当前分组。搜索历史保留数可设为 0。上述数据不会上传。
-```
-
-### `sidePanel`
-
-```
-将 PowerfulTab 主界面渲染在 Chrome 侧边栏，用于浏览、搜索和管理打开的标签。
+```text
+Creates and updates native Chrome tab groups in each window using the selected grouping mode, domain/path whitelists, and group-size limits. New tabs can inherit their source tab's group. Organizing does not close tabs.
 ```
 
-### `favicon`
+## sessions
 
+```text
+Supports Undo after manual tab or group closing by querying recently closed sessions with chrome.sessions.getRecentlyClosed and restoring them with chrome.sessions.restore. Exact deduplication does not create an Undo prompt.
 ```
-通过 Chrome 提供的扩展内 /_favicon/ 接口读取标签所属网站的图标，显示在标签列表中，帮助用户辨认不同站点。不需要读取网页正文或向扩展开发者上传数据。
+
+## storage
+
+```text
+Uses chrome.storage.local for language, theme, grouping mode, both grouping whitelists, group-size limits, tab-order preferences, search retention, search clear delay, search history, and creation/visit timestamps. chrome.storage.session temporarily stores active-tab ID history for new-tab group inheritance. Search retention can be set to 0. Stored data is not uploaded.
 ```
 
----
+## sidePanel
 
-### 数据使用声明（隐私惯例 → 数据使用）
+```text
+Displays the PowerfulTab tab manager in Chrome's side panel so users can browse, search, and manage open tabs alongside the current page.
+```
 
-| 问题 | 答案 |
+## favicon
+
+```text
+Uses Chrome's extension /_favicon/ endpoint to display site icons in tab lists so users can identify websites. It does not read page bodies or upload tab data to the extension developer.
+```
+
+## Data-use disclosure
+
+| Data / use | Current behavior |
 | --- | --- |
-| 是否收集用户身份识别信息（姓名、邮箱、地址等） | **否** |
-| 是否收集健康信息 | **否** |
-| 是否收集金融与付款信息 | **否** |
-| 是否收集身份验证信息 | **否** |
-| 是否收集个人通信内容 | **否** |
-| 是否收集位置信息 | **否** |
-| 是否处理用户网络浏览活动 | **是，仅在本地处理**：读取打开标签的 URL、标题和活动状态，保存标签访问时间；在对应数据类型中如实披露，不代表上传数据 |
-| 是否收集网站内容（截图、表单内容等） | **否** |
-| 是否将数据用于不相关用途 | **否** |
-| 是否出售或转让数据给第三方 | **否** |
-| 是否使用数据用于广告投放 | **否** |
-| 是否使用数据决定信用评分或贷款 | **否** |
-| 我证明此数据使用披露准确 | 由发布者核对实际行为、政策与填写内容一致后确认 |
+| Personally identifying information | Not collected by the developer |
+| Health, financial, payment, authentication, communications, or location data | Not collected by the developer |
+| Web browsing activity | Processed locally: open-tab URLs, titles, active state, and visit timestamps |
+| Website content such as page bodies, screenshots, or forms | Not read |
+| Unrelated uses, advertising, sale, transfer, credit / lending decisions | Not used |
+| Upload to developer or third parties | None |
+| Accuracy / compliance certifications | The publisher must verify the actual implementation and complete required certifications |
 
-参考：[Chrome Web Store 用户数据 FAQ](https://developer.chrome.com/docs/webstore/program-policies/user-data-faq)。即使数据仅在本地处理或存储，也必须披露。底部的限制用途、数据转让和信用用途合规声明需要发布者逐项核对后勾选，并保存草稿。
+Local processing does not eliminate disclosure obligations. See [Chrome Web Store user data FAQ](https://developer.chrome.com/docs/webstore/program-policies/user-data-faq). Review restricted-use, transfer, and credit-use declarations individually, then save the draft.
 
-### 发布方联系邮箱
+## Publisher contact email
 
-进入开发者后台的账号 **设置**（不是插件内设置），填写 `Peeeng520@gmail.com` 并保存；启动邮箱验证，前往邮箱完成验证，再回到后台确认状态为已验证。项目介绍或 README 中写邮箱不能代替此操作。
+In developer account **Settings**, enter and save `Peeeng520@gmail.com`, start verification, and complete the email link. Confirm the verified state in the dashboard. Putting an email in README or the listing does not replace account verification.
 
----
+## Host permissions
 
-### 关于 host_permissions
-
-PowerfulTab 当前**不申请任何 host_permissions**（即不申请 `<all_urls>` / 具体域名）。
-如未来需要在网页中注入脚本（暂无此计划），需在隐私惯例中额外说明用途，否则审核会重点关注。
+PowerfulTab does not request host permissions, including `<all_urls>`. The `web_accessible_resources.matches` entry is not a host-permission grant. Language support adds no permissions.

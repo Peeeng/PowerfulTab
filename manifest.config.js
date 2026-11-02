@@ -3,10 +3,10 @@ export default defineManifest({
     manifest_version: 3,
     name: 'PowerfulTab',
     version: '0.1.10',
-    description: '一键整理标签页：域名 / Path 分组、完整 URL 精确去重、标题 / URL / 拼音首字母搜索、空格分隔多关键词、多窗口配色、复制标签和撤销关闭。本地处理，不上传数据。',
+    description: 'Organize tabs by domain or path, remove exact URL duplicates, and search across windows. Local-only. No uploads.',
     homepage_url: 'https://github.com/Peeeng/PowerfulTab',
     action: {
-        default_title: 'PowerfulTab · 打开侧边栏',
+        default_title: 'PowerfulTab · Open Side Panel',
     },
     background: {
         service_worker: 'src/background/index.ts',

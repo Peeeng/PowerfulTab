@@ -1,84 +1,64 @@
-# PowerfulTab 隐私政策
+# PowerfulTab Privacy Policy
 
-**最后更新：2026-10-29**
+Last updated: 2026-11-02
 
-PowerfulTab（"我们"、"本扩展"）尊重并保护所有用户的个人隐私。本隐私政策说明了 PowerfulTab 在你使用过程中如何处理数据。
+PowerfulTab processes information locally to help you manage open Chrome tabs. This policy describes the data used, stored, and disclosed by the extension.
 
----
+## 1. Local processing; no uploads
 
-## 1. 数据仅在本地处理，不上传
+PowerfulTab reads open tabs' URLs, titles, icons, active states, and timestamps to group, search, sort, and perform requested tab actions.
 
-PowerfulTab 是一个**纯本地运行**的浏览器扩展。我们：
+The developer does not collect personally identifying information, upload tab data to servers, share or sell it to third parties, or use it for advertising, credit scoring, or lending decisions.
 
-- **不会** 收集你的个人身份信息
-- 为分组、搜索、排序及标签操作，在本地读取打开标签的 URL、标题、图标和活动状态；这些数据**不会上传给我们或第三方**
-- **不会** 上传任何数据到任何服务器
-- **不会** 与任何第三方共享数据
-- **不会** 使用数据进行广告投放或信用评估
+## 2. Local storage
 
----
+The following stays in `chrome.storage.local`, within your Chrome profile:
 
-## 2. 本地存储的数据
-
-为了让扩展正常工作，以下数据会保存在 `chrome.storage.local`（**仅你本机的 Chrome 配置内**）：
-
-| 数据类型 | 用途 | 是否离开你的设备 |
-| --- | --- | --- |
-| 白名单域名列表 | 按 Path 整理时，让指定域名仅按域名分组 | 否 |
-| URL 保护白名单 | 让指定 URL 不参与整理和去重 | 否 |
-| 主题偏好（浅色/深色） | UI 渲染 | 否 |
-| 整理方式、最多分组数、最少标签数、组内排序偏好 | 标签分组与列表展示 | 否 |
-| 搜索框保留数与搜索关键词历史 | 展示最近搜索；保留数设为 0 时不保留历史 | 否 |
-| 各标签创建时间戳（首次记录时间） | 按创建时间排序 | 否 |
-| 各标签最近访问时间戳 | 排序与显示相对时间 | 否 |
-
-此外，`chrome.storage.session` 临时保存各窗口的活动标签 ID 历史，用于新标签继承当前分组，不会上传到服务器。
-
-你可以随时在 `chrome://extensions/` 卸载 PowerfulTab，扩展保存的本地数据将被一并清除。
-
----
-
-## 3. 我们使用的 Chrome 权限
-
-| 权限 | 用途 |
+| Data | Purpose |
 | --- | --- |
-| `tabs` | 在本地读取标签 URL/title/favicon 用于分组与去重 |
-| `tabGroups` | 按域名或一级 Path 管理 Chrome 原生标签组 |
-| `sessions` | 实现"撤销关闭"功能 |
-| `storage` | 本地保存上述偏好 |
-| `sidePanel` | 在侧边栏显示主界面 |
-| `favicon` | 拉取站点图标显示在标签卡片上 |
+| Domain and path grouping whitelists | Apply grouping exceptions in the selected mode |
+| Protected URL list | Exclude specified URLs from organizing and deduplication |
+| Language and light / dark theme | Render the chosen interface |
+| Grouping mode, group-size limits, and tab-order preferences | Organize and display tabs |
+| Search-history retention and saved search terms | Show recent searches; 0 disables retention |
+| Search clear delay | Clear the current query after inactivity; 0 disables clearing |
+| Tab creation / first-recorded timestamps | Creation-based ordering |
+| Last-visited timestamps | Visit-based ordering and relative times |
 
-**所有权限仅用于本地标签管理，不涉及任何远程数据传输。**
+`chrome.storage.session` temporarily stores active-tab ID history in each window to support new-tab group inheritance. It is not uploaded.
 
----
+Both language dictionaries and the pinyin dictionary are bundled in the extension; no remote translation service is used. Changing interface language does not translate your tab titles, URLs, group names, or search history.
 
-## 4. 网络请求
+Uninstalling PowerfulTab through `chrome://extensions/` removes its stored extension data.
 
-PowerfulTab 不会主动发起任何网络请求。
-（站点 favicon 由 Chrome 内置 `chrome://favicon/` 提供，不经过我们任何服务器。）
+## 3. Chrome permissions
 
----
+| Permission | Purpose |
+| --- | --- |
+| `tabs` | Read tab metadata and activate, duplicate, close, move, or order tabs |
+| `tabGroups` | Manage native Chrome groups |
+| `sessions` | Query / restore recently closed tabs for Undo |
+| `storage` | Store local preferences, history, and timestamps |
+| `sidePanel` | Show the tab manager in the side panel |
+| `favicon` | Display site icons via Chrome's extension /_favicon/ endpoint |
 
-## 5. 第三方服务
+These permissions serve local tab management. PowerfulTab does not read page bodies or inject scripts into websites.
 
-PowerfulTab 不集成任何分析、统计、广告或追踪 SDK。
+## 4. Network and third-party services
 
----
+PowerfulTab does not upload tab-management data or fetch remote code, analytics, advertisements, or translations. Site icons are supplied by Chrome's favicon API. Opening, duplicating, or activating a website may cause the browser to load that website normally; this is not data collection by PowerfulTab.
 
-## 6. 儿童隐私
+No analytics, advertising, or tracking SDK is integrated.
 
-PowerfulTab 不针对 13 岁以下儿童收集数据。
+## 5. Children
 
----
+The developer does not collect data from children under 13.
 
-## 7. 政策更新
+## 6. Policy updates
 
-本政策若有更新，将在本项目 GitHub 仓库的隐私政策页面发布。
+Changes will be published on the privacy-policy page in this project's GitHub repository.
 
----
-
-## 8. 联系我们
+## 7. Contact
 
 - GitHub Issues: https://github.com/Peeeng/PowerfulTab/issues
 - Email: Peeeng520@gmail.com

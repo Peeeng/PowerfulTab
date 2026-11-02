@@ -1,126 +1,80 @@
-## 02 · 商店详情文案
+# 02 · Chrome Web Store listing
 
-> 以下所有内容已为你准备好可直接粘贴。Dev Console 输入框有字符上限，已严格控制在限内。
+Use English as the store listing's primary language. The in-extension language setting is independent of Chrome's store-language configuration.
 
----
+## Name (45 characters maximum)
 
-### 名称（45 字内）
-
-```
-PowerfulTab — 一键整理标签页
+```text
+PowerfulTab — Tab Organizer
 ```
 
----
+## Short description (132 characters maximum)
 
-### 简短说明（132 字内 · 商店搜索结果展示）
-
-```
-一键按域名或一级 Path 整理标签，独立按钮精确去重，支持标题、URL、拼音首字母与多关键词搜索，多窗口配色、复制标签和撤销关闭。本地处理，不上传数据。
+```text
+Organize tabs by domain or path, remove exact URL duplicates, and search across windows. Local-only. No uploads.
 ```
 
-以上简短说明控制在 132 字符内。
+## Detailed description
 
----
+```text
+PowerfulTab — Bring order to your browser tabs
 
-### 详细介绍（16,000 字内 · 详情页主体）
+Manage crowded Chrome windows with native tab groups, precise deduplication, and fast local search.
 
-```
-🌌 PowerfulTab — 把混乱的标签页变成宇宙银河
+FEATURES
 
-如果你和我一样，一开 Chrome 就有 30+ 个标签页飘在窗口上方变成像素，PowerfulTab 就是为你设计的。
+• Organize: group tabs by domain or first-level path, independently in each window. Organizing never closes tabs.
+• Domain whitelist: in Domain mode, listed hostnames use first-level path grouping.
+• Path whitelist: in Path mode, listed hostnames use domain grouping. Both lists are saved independently and match exact hostnames.
+• Group limits: default minimum 3 tabs and maximum 15 groups, including other. Small or excess groups go to other.
+• Exact deduplication: a separate button closes only identical full URLs, including path, parameters, and hash. The most recently visited duplicate survives.
+• Search: match titles, URLs, and Chinese-title pinyin initials. Separate keywords with spaces; every keyword must match.
+• Search history: keep the latest 1 search by default, choose another count, or set 0 to disable.
+• Search clear delay: default 60 seconds after the last input. Typing or choosing history restarts the timer; 0 disables automatic clearing. IME composition pauses clearing. Saved history is preserved.
+• Tab order: creation time (oldest first) or last visit (newest first), with a 3-second reorder debounce.
+• Window colors: identify windows by colored stripes and matching active-tab highlights.
+• Tab actions: activate, duplicate, close, or move a tab to another compatible window.
+• New-tab inheritance: new tabs join the source tab's native group when possible.
+• Recent: a shortcut list of recent tabs, updated after a 500ms debounce; search and active highlights stay immediate.
+• Undo: manual tab / group closing offers a 5-second Undo when Chrome supplies a restorable session. Deduplication does not show this prompt.
+• Pinned-tab protection: pinned tabs are excluded from organizing and deduplication.
+• Side panel: manage tabs alongside the current page, with light and dark themes.
+• Language: English by default, with Simplified Chinese available in Settings. Tab titles and group names remain unchanged.
+• Compact settings: small question-mark hints beside labels; only the current grouping mode's whitelist is displayed.
 
-✨ 核心功能
+PRIVACY
 
-· 一键整理：只做分组，不关闭标签；支持按域名或一级 Path 分组，并同步到各窗口的 Chrome 原生标签组
-· 分组白名单：按域名模式下，域名白名单中的站点改按一级 Path 分组；按 Path 模式下，Path白名单中的站点改按域名分组，两份名单独立保存
-· 分组规则：默认最少 3 个标签才独立成组，最多 15 组；不满足条件的归入 other
-· 独立去重：只有完整 URL（包含 Path、参数和 hash）完全一致才去重，保留最近访问的标签
-· 快速搜索：按标题、URL 或中文标题拼音首字母模糊检索，例如 bd 搜“百度”、wx 搜“微信”
-· 多关键词搜索：用空格分隔关键词，所有关键词都匹配才显示，顺序不限；每个关键词可分别匹配标题、URL 或拼音首字母
-· 搜索记忆：默认保留最近 1 条搜索，可调整条数，设为 0 关闭保留
-· 搜索清空时间：最后一次输入后默认 60 秒清空当前搜索，设为 0 关闭；每次输入或选择记录重新计时，中文选字期间暂停，不删除搜索历史
-· 紧凑设置：提示收纳到设置名称右上角的小问号，悬浮查看；只显示当前整理方式对应的白名单
-· 组内排序：按创建时间或最近访问时间排序，浏览时间在列表中直观展示
-· 多窗口识别：不同窗口使用不同颜色竖线，活动标签使用对应颜色高亮
-· 复制与关闭：鼠标移入标签时显示操作按钮，支持复制原标签；新标签自动继承当前分组
-· 移动窗口：将标签移动到其他窗口，通过窗口编号、标签数量和活动页标题选择目标
-· Recent：最近访问列表延迟 500ms 更新，搜索筛选与活动标签高亮即时显示
-· 撤销关闭 ：误关了？一键 Undo（基于 Chrome Sessions API）
-· 固定标签保护：固定标签不参与整理和去重
-· 侧边栏视图 ：在浏览器侧栏快速浏览所有标签，无需切窗口
+Processing takes place locally. PowerfulTab does not upload tab data, sell data, or include analytics, advertising, or remote translation services.
+Settings, language, search history, and tab timestamps are stored in chrome.storage.local. Active-tab ID history used for group inheritance stays in chrome.storage.session.
+Pinyin dictionaries and both interface languages are bundled with the extension.
 
-🔒 隐私至上
+GET STARTED
 
-PowerfulTab 完全在你本地运行：
-· 不收集任何数据
-· 不发送任何网络请求
-· 偏好、搜索历史及标签时间戳保存在 chrome.storage.local；活动标签 ID 历史临时保存在 chrome.storage.session
-· 开源代码可审计，欢迎来仓库 issue / PR
+1. Click the PowerfulTab extension icon.
+2. The side panel opens.
+3. Click Organize to create native Chrome tab groups.
+4. Open Settings to choose your language and grouping preferences.
 
-🎨 设计
-
-· 浅色 / 深色双主题
-· 手绘风插画与微动效，告别冷冰冰的工具感
-· 中文友好的相对时间表达（刚刚 / 5m / 2h / 3d）
-
-🚀 上手
-
-1. 安装后点击工具栏 PowerfulTab 图标
-2. 侧边栏会自动打开
-3. 点 "一键整理" 即开始
-
-💌 反馈与建议
+FEEDBACK
 
 GitHub: https://github.com/Peeeng/PowerfulTab
-邮箱：Peeeng520@gmail.com
-有想法、找 bug、想加功能，欢迎来 issue 区。
+Email: Peeeng520@gmail.com
 
----
-
-更新日志见仓库 CHANGELOG。
+See CHANGELOG.md in the repository for version history.
 ```
 
----
+## Single purpose
 
-### 单一用途（隐私惯例必填，250 字内）
-
-```
-PowerfulTab 的单一用途是管理浏览器中打开的标签页：按域名或一级 Path 分组、搜索标题与 URL、通过独立按钮关闭完整 URL 相同的重复标签、复制标签和按时间排序。一键整理只分组，不关闭标签。所有数据处理均在本地完成，不上传信息。
+```text
+PowerfulTab manages open browser tabs: group by domain or path, search titles and URLs, remove exact URL duplicates, and move, duplicate, close, or sort tabs. Organize never closes tabs. All processing is local; tab data is not uploaded.
 ```
 
-以上单一用途说明控制在 250 字符内。
+## Category
 
----
+Productivity
 
-### 类别
+## Keywords
 
-```
-生产工具 (Productivity)
-```
+Tab manager · Tab organizer · Deduplicate · Side panel · Search
 
----
-
-### 关键词建议（用于商店 SEO，最多 5 个）
-
-```
-标签管理 · Tab Manager · 去重 · 整理 · 侧边栏
-```
-
----
-
-### 支持语言
-
-```
-中文（简体）
-English（可选添加，详细说明可以让我用英文再写一遍）
-```
-
----
-
-### 推广联系信息
-
-| 字段 | 值 |
-| --- | --- |
-| 网站 | https://github.com/Peeeng/PowerfulTab |
-| 支持邮箱 | Peeeng520@gmail.com |
-| 支持页 URL | https://github.com/Peeeng/PowerfulTab/issues |
+The current language work is Unreleased. Use this updated listing when uploading a build that includes these capabilities; do not advertise unreleased features against an older package.

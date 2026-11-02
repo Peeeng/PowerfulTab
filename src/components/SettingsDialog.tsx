@@ -1,5 +1,6 @@
 import { cloneElement, useEffect, useId, useRef, useState, type ReactElement } from 'react';
 import type { Settings } from '../core/types';
+import { createTranslator } from '../core/i18n';
 import { normalizeMaxGroupCount, normalizeMinGroupTabs, normalizeSearchClearTimeout, parseDomainWhitelist } from '../core/storage';
 import './settings-dialog.css';
 
@@ -39,6 +40,7 @@ function SettingField({ label, hint, multiline = false, children }: {
 export default function SettingsDialog({ settings, onSave, onClose }: Props): JSX.Element {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [draft, setDraft] = useState(settings);
+  const t = createTranslator(draft.language);
   const [whitelist, setWhitelist] = useState(settings.pathDomainWhitelist.join('\n'));
   const [domainWhitelist, setDomainWhitelist] = useState(settings.domainPathWhitelist.join('\n'));
   const [maxCount, setMaxCount] = useState(String(settings.maxGroupCount));
@@ -46,7 +48,7 @@ export default function SettingsDialog({ settings, onSave, onClose }: Props): JS
   const [searchCount, setSearchCount] = useState(String(settings.searchHistoryCount));
   const [searchTimeout, setSearchTimeout] = useState(String(settings.searchClearTimeoutSeconds));
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState(false);
 
   useEffect(() => {
     const dialog = dialogRef.current;
@@ -75,49 +77,54 @@ export default function SettingsDialog({ settings, onSave, onClose }: Props): JS
           searchHistoryCount: Math.max(0, Math.floor(Number(searchCount))),
           searchClearTimeoutSeconds: normalizeSearchClearTimeout(Number(searchTimeout)),
         }).then(onClose).catch(() => {
-          setError('保存失败，请重试');
+          setError(true);
           setSaving(false);
         });
       }}>
-        <h2 id="settings-title">设置</h2>
-        <SettingField label="整理方式" hint="一键整理只分组，不关闭标签。可按域名或一级 Path 分组；去重按钮仅关闭完整链接完全一致的重复标签。">
-          <select value={draft.groupMode} onChange={(e) => setDraft({ ...draft, groupMode: e.target.value as Settings['groupMode'] })}>
-            <option value="domain">按域名分组</option>
-            <option value="path">按一级 Path 分组</option>
+        <h2 id="settings-title">{t('settings')}</h2>
+        <SettingField label={t('language')} hint={t('languageHint')}>
+          <select value={draft.language} onChange={(e) => setDraft({ ...draft, language: e.target.value as Settings['language'] })}>
+            <option value="en">English</option><option value="zh-CN">简体中文</option>
           </select>
         </SettingField>
-        {draft.groupMode === 'path' ? <SettingField key="path-whitelist" label="Path白名单" hint="仅在按 Path 分组时生效：名单内域名改按域名分组。支持逗号、空格或换行分隔，精确匹配域名。">
+        <SettingField label={t('organizeMode')} hint={t('organizeHint')}>
+          <select value={draft.groupMode} onChange={(e) => setDraft({ ...draft, groupMode: e.target.value as Settings['groupMode'] })}>
+            <option value="domain">{t('domainMode')}</option>
+            <option value="path">{t('pathMode')}</option>
+          </select>
+        </SettingField>
+        {draft.groupMode === 'path' ? <SettingField key="path-whitelist" label={t('pathWhitelist')} hint={t('pathWhitelistHint')}>
           <textarea className="powerful-settings__whitelist" rows={2} value={whitelist} onChange={(e) => setWhitelist(e.target.value)} placeholder="example.com" />
-        </SettingField> : <SettingField key="domain-whitelist" label="域名白名单" hint="仅在按域名分组时生效：名单内域名改按一级 Path 分组。支持逗号、空格或换行分隔，精确匹配域名。">
+        </SettingField> : <SettingField key="domain-whitelist" label={t('domainWhitelist')} hint={t('domainWhitelistHint')}>
           <textarea className="powerful-settings__whitelist" rows={2} value={domainWhitelist} onChange={(e) => setDomainWhitelist(e.target.value)} placeholder="example.com" />
         </SettingField>}
-        <SettingField label="最少标签数" hint="默认 3 个；预分组标签数达到该值才独立成组，否则归入 other。">
-          <input type="number" min="1" step="1" required aria-label="最少标签数" value={minTabs} onChange={(e) => setMinTabs(e.target.value)} />
+        <SettingField label={t('minTabs')} hint={t('minTabsHint')}>
+          <input type="number" min="1" step="1" required value={minTabs} onChange={(e) => setMinTabs(e.target.value)} />
         </SettingField>
-        <SettingField label="最多分组数" hint="始终生效，默认 15 个（含 other）；大组优先，超限的小组合并到 other。">
-          <input type="number" min="1" step="1" required aria-label="最大分组数" value={maxCount} onChange={(e) => setMaxCount(e.target.value)} />
+        <SettingField label={t('maxGroups')} hint={t('maxGroupsHint')}>
+          <input type="number" min="1" step="1" required value={maxCount} onChange={(e) => setMaxCount(e.target.value)} />
         </SettingField>
-        <SettingField label="组内标签排序" hint="创建时间从早到晚，访问时间从近到远；需要改变顺序时防抖 3 秒。安装前已有标签按首次记录顺序兜底。">
+        <SettingField label={t('tabSort')} hint={t('tabSortHint')}>
           <select value={draft.groupTabSort} onChange={(e) => setDraft({ ...draft, groupTabSort: e.target.value as Settings['groupTabSort'] })}>
-            <option value="created">创建时间</option>
-            <option value="accessed">访问时间</option>
+            <option value="created">{t('created')}</option>
+            <option value="accessed">{t('accessed')}</option>
           </select>
         </SettingField>
-        <SettingField label="搜索记录保留" hint="默认保留 1 条搜索记录，设为 0 不记录历史。">
-          <input type="number" min="0" step="1" required aria-label="搜索记录保留条数" value={searchCount} onChange={(e) => setSearchCount(e.target.value)} />
+        <SettingField label={t('searchRetention')} hint={t('searchRetentionHint')}>
+          <input type="number" min="0" step="1" required value={searchCount} onChange={(e) => setSearchCount(e.target.value)} />
         </SettingField>
-        <SettingField label="搜索清空时间" hint="单位为秒，默认 60；每次输入重新计时，设为 0 不自动清空。搜索历史不受影响。">
-          <input type="number" min="0" step="1" required aria-label="搜索清空时间（秒）" value={searchTimeout} onChange={(e) => setSearchTimeout(e.target.value)} />
+        <SettingField label={t('searchTimeout')} hint={t('searchTimeoutHint')}>
+          <input type="number" min="0" step="1" required value={searchTimeout} onChange={(e) => setSearchTimeout(e.target.value)} />
         </SettingField>
-        <SettingField label="主题" hint="切换明亮或深色界面。">
+        <SettingField label={t('theme')} hint={t('themeHint')}>
           <select value={draft.theme} onChange={(e) => setDraft({ ...draft, theme: e.target.value as Settings['theme'] })}>
-            <option value="light">明亮</option><option value="dark">深色</option>
+            <option value="light">{t('light')}</option><option value="dark">{t('dark')}</option>
           </select>
         </SettingField>
-        {error && <p role="alert">{error}</p>}
+        {error && <p role="alert">{t('saveFailed')}</p>}
         <div className="powerful-settings__actions">
-          <button type="button" disabled={saving} onClick={onClose}>取消</button>
-          <button type="submit" disabled={saving}>{saving ? '保存中…' : '保存'}</button>
+          <button type="button" disabled={saving} onClick={onClose}>{t('cancel')}</button>
+          <button type="submit" disabled={saving}>{t(saving ? 'saving' : 'save')}</button>
         </div>
       </form>
     </dialog>

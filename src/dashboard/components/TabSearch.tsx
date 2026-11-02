@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { getSearchHistory, setSearchHistory } from '../../core/storage';
 import { rememberSearch } from '../../core/search';
+import { useI18n } from '../../components/I18nProvider';
+import type { MessageKey } from '../../core/i18n';
 
 interface Props {
   query: string;
@@ -10,9 +12,10 @@ interface Props {
 }
 
 export default function TabSearch({ query, onQuery, historyCount, clearTimeoutSeconds }: Props): JSX.Element {
+  const t = useI18n();
   const [history, setHistory] = useState<string[]>([]);
   const historyRef = useRef<string[]>([]);
-  const [error, setError] = useState('');
+  const [error, setError] = useState<MessageKey | null>(null);
   const [open, setOpen] = useState(false);
   const [selected, setSelected] = useState(-1);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -34,7 +37,7 @@ export default function TabSearch({ query, onQuery, historyCount, clearTimeoutSe
     historyRef.current = next;
     setHistory(next);
     writes.current = writes.current.then(() => setSearchHistory(next, countRef.current))
-      .then(() => setError('')).catch(() => setError('搜索记录保存失败'));
+      .then(() => setError(null)).catch(() => setError('historySaveFailed'));
   };
   const schedule = (term: string): void => {
     clearTimeout(saveTimer.current);
@@ -75,7 +78,7 @@ export default function TabSearch({ query, onQuery, historyCount, clearTimeoutSe
         historyRef.current = stored;
         setHistory(stored);
       }
-    }).catch(() => { if (!disposed) setError('搜索记录读取失败'); });
+    }).catch(() => { if (!disposed) setError('historyLoadFailed'); });
     return () => { disposed = true; clearTimeout(saveTimer.current); };
   }, [historyCount]);
 
@@ -122,15 +125,15 @@ export default function TabSearch({ query, onQuery, historyCount, clearTimeoutSe
   }, []);
 
   return (
-    <section className="powerful-search" aria-label="标签检索">
+    <section className="powerful-search" aria-label={t('search')}>
       <form className="powerful-search__form" role="search" onSubmit={(e) => {
         e.preventDefault(); remember(query); setOpen(false);
       }}>
         <div className="powerful-search__field">
           <input ref={inputRef} autoFocus type="search" autoComplete="off" role="combobox"
-            aria-label="搜索 URL、标签名称或拼音首字母，多个关键词用空格分隔" aria-autocomplete="list" aria-expanded={open && history.length > 0}
+            aria-label={t('searchLabel')} aria-autocomplete="list" aria-expanded={open && history.length > 0}
             aria-controls="search-history" aria-activedescendant={open && selected >= 0 ? `search-history-${selected}` : undefined}
-            placeholder="搜索 URL、名称或首字母，空格分词…" value={query}
+            placeholder={t('searchPlaceholder')} value={query}
             onFocus={() => { setOpen(true); setSelected(-1); }} onClick={() => setOpen(true)}
             onBlur={() => { setOpen(false); if (!composing.current) remember(query); }}
             onCompositionStart={() => { composing.current = true; clearTimeout(saveTimer.current); clearTimeout(clearTimer.current); }}
@@ -148,13 +151,13 @@ export default function TabSearch({ query, onQuery, historyCount, clearTimeoutSe
                 e.preventDefault(); setOpen(false); setSelected(-1);
               }
             }} />
-          {open && history.length > 0 && <div id="search-history" role="listbox" aria-label="最近搜索记录" className="powerful-search__history">
+          {open && history.length > 0 && <div id="search-history" role="listbox" aria-label={t('searchHistory')} className="powerful-search__history">
             {history.map((term, index) => <div key={term} id={`search-history-${index}`} role="option" aria-selected={selected === index}
               title={term} onMouseDown={(e) => e.preventDefault()} onClick={() => choose(term)}>{term}</div>)}
           </div>}
         </div>
       </form>
-      {error && <span role="status">{error}</span>}
+      {error && <span role="status">{t(error)}</span>}
     </section>
   );
 }

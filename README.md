@@ -4,7 +4,7 @@
 
 # PowerfulTab
 
-**一键整理 Chrome 标签页：域名 / Path 分组 · 精确去重 · 快速检索 · 多窗口配色**
+**Organize Chrome tabs: Domain / Path groups · Exact deduplication · Fast search · Multi-window colors**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Manifest V3](https://img.shields.io/badge/Manifest-V3-success.svg)](manifest.config.ts)
@@ -12,175 +12,178 @@
 [![Vite](https://img.shields.io/badge/Vite-5-646CFF?logo=vite&logoColor=white)](https://vitejs.dev/)
 [![Privacy](https://img.shields.io/badge/Privacy-Local-brightgreen)](docs/privacy.md)
 
-[✨ 功能](#支持的能力) · [📸 预览](#预览) · [📦 安装](#安装与更新) · [🛠 开发](#开发与代码入口) · [🔒 隐私](#本地数据与权限)
+[✨ Features](#features) · [📸 Preview](#preview) · [📦 Installation](#installation-and-updates) · [🛠 Development](#development) · [🔒 Privacy](#local-data-and-permissions)
 
 </div>
 
 ---
 
-## 🌌 简介
+## 🌌 Overview
 
-Chrome 标签管理扩展：域名 / 一级 Path 整理、精确去重、搜索、窗口配色及标签操作。基于 Manifest V3、TypeScript、React 18、Vite 5 和 GSAP。
+PowerfulTab manages Chrome tabs with domain / first-level path grouping, exact URL deduplication, search, window colors, and tab actions. Built with Manifest V3, TypeScript, React 18, Vite 5, and GSAP.
 
-产品名称与仓库名称统一为 **PowerfulTab**，样式与存储命名也已统一。更新时自动迁移旧本地数据，保留已有设置与搜索历史。
+The interface defaults to **English**. Choose **English** or **简体中文** in Settings → Language, then Save. The selection is stored locally and applies to the dashboard, side panel, and fallback popup. Existing installations without a language preference also default to English. Tab titles, URLs, group names, and search history are never translated.
 
-npm 项目名为 `powerfultab`，本地项目目录为 `PowerfulTab`。Chrome 开发者安装请选择当前项目的 `dist` 目录；更新时重新加载即可。
+Product and repository names are **PowerfulTab**; npm uses `powerfultab`. Older local data is migrated without losing settings or search history. Load this project's `dist/` directory for development.
 
-## 预览
+## Preview
 
-![PowerfulTab 品牌预览：域名 / Path 分组、精确去重、标签搜索与本地运行](release/screenshots/promo-marquee-1400x560.png)
+![PowerfulTab branding: domain / path groups, exact deduplication, and local search](release/screenshots/promo-marquee-1400x560.png)
 
-以上为品牌宣传图，不是实际界面截图。当前界面的截图需按 [截图指南](release/05-screenshots.md) 拍摄；Chrome Web Store 上架时还需提交真实产品截图。
+This is a promotional image, not a product screenshot. Capture current UI screenshots using the [screenshot guide](release/05-screenshots.md). Existing screenshots are not automatically updated when the interface changes; use English and remove private information before uploading new screenshots.
 
-## 支持的能力
+## Features
 
-| 能力 | 当前行为 |
+| Feature | Behavior |
 | --- | --- |
-| 🚀 一键整理 | 只执行分组及设置要求的组内排列，不去重、不关闭标签、不跨窗口合并 |
-| 🧹 独立去重 | 完整 URL 字符串完全一致才关闭重复标签，保留最近访问者 |
-| 整理方式 | 按完整 hostname，或按 hostname + 一级 Path 分组 |
-| Path白名单 | 指定域名不拆 Path，按域名分组 |
-| 域名白名单 | 按域名分组时，指定域名改拆一级 Path |
-| 最少标签数 | 默认 3；不足的预分组合并到 `other` |
-| 最多分组数 | 默认 15，始终生效，包含 `other` |
-| 组内标签排序 | 按配置选择创建时间升序或访问时间降序（默认）；需要重排时防抖 3 秒 |
-| 🔎 标签检索 | URL、标签名称及中文标题拼音首字母包含匹配；空格分隔多个关键词，全部满足才显示 |
-| 🕘 搜索记忆 | 默认保留 1 条，可设置 n 条或 0；点击输入框显示历史下拉列表 |
-| 标签操作 | 激活、移动到其他窗口、复制、关闭标签和关闭整组 |
-| 🎨 多窗口配色 | 每个标签行显示窗口色竖线，各窗口活动标签使用同色背景高亮 |
-| ⚙️ 设置弹窗 | 齿轮按钮打开；保存才写入，取消、Esc 或点击弹窗外丢弃未保存修改 |
-| 🌗 主题 | 浅色、深色，可通过工具栏或设置切换 |
+| 🚀 Organize | Groups and orders tabs; never deduplicates, closes tabs, or merges windows |
+| 🧹 Deduplicate | Closes tabs only when full URLs are identical; keeps the most recently visited |
+| Organize by | Full hostname or hostname + first-level path |
+| Domain whitelist | In Domain mode, listed hostnames use first-level path grouping |
+| Path whitelist | In Path mode, listed hostnames use domain grouping |
+| Minimum tabs | Default 3; smaller planned groups go to `other` |
+| Maximum groups | Default 15; always enabled and includes `other` |
+| Tab order | Created: oldest first; Last visited: newest first; changes debounced for 3 seconds |
+| 🔎 Search | URL, title, and Chinese-title pinyin initials; space-separated keywords must all match |
+| 🕘 Search history | Default 1 saved search; configurable, including 0 |
+| Search clear delay | Default 60 seconds after the last input; 0 disables automatic clearing |
+| Tab actions | Activate, move to another window, duplicate, close a tab, or close a group |
+| 🎨 Window colors | Color stripe per window; matching highlights for active tabs |
+| ⚙️ Settings | Compact labels with small hover hints; Save applies, Cancel / Esc / outside click discards |
+| 🌐 Language | English by default; Simplified Chinese also available |
+| 🌗 Theme | Light / dark, from the toolbar or Settings |
 
-## 整理与去重
+## Organizing and deduplicating
 
-### 一键整理
+### Organize
 
-一键整理不包含任何去重步骤。处理流程如下：
+Organize does not run deduplication:
 
-1. 读取标签与设置，排除固定标签及 URL 保护白名单。
-2. 按窗口分别生成预分组；采用域名或 Path 规则。
-3. 应用最少标签数规则，不足的预分组进入 `other`。
-4. 合格预分组按标签数量降序排列，同数量保持原预分组顺序。
-5. 应用最多分组数规则；超限时保留前 `n-1` 个大组，尾部组和小组统一进入 `other`。没有剩余标签时不创建空 `other`。
-6. 按选定的组内排序排列成员，先解除参与标签的旧分组，再创建 Chrome 原生组。
-7. 原生组按大组优先排列，`other` 位于最后、使用灰色。即使 `other` 只有一个标签也会建组。
+1. Read tabs and settings; skip pinned tabs and protected URLs.
+2. Compute planned groups independently for each window using the active mode and its whitelist.
+3. Send groups below Minimum tabs to `other`.
+4. Sort eligible groups by tab count, largest first; ties preserve original planned-group order.
+5. Apply Maximum groups. If needed, keep the first `n-1` groups and combine smaller / excess groups into `other`. Never create an empty `other`.
+6. Order members using the selected tab-order setting, ungroup participating tabs, then create Chrome native groups.
+7. Place native groups largest first, with gray `other` last. Even a single-tab `other` is grouped.
 
-最多分组数为 1 时，只要需要合并，全部参与标签进入 `other`。
+When Maximum groups is 1 and merging is needed, all participating tabs go to `other`.
 
-### 分组键与名称
+### Group keys and names
 
-| 情况 | 分组键 | 显示名称示例 |
+| Case | Group key | Display example |
 | --- | --- | --- |
-| 按域名 | 完整 hostname | `data.bytedance.net` → `data` |
-| 按一级 Path | 完整 hostname + 首个非空路径段 | `data.bytedance.net/dorado/instance` → `data.dorado` |
-| Path白名单域名 | 完整 hostname | `cloud.bytedance.net` → `cloud` |
-| 域名白名单域名（按域名模式） | 完整 hostname + 首个非空路径段 | `data.bytedance.net/dorado/instance` → `data.dorado` |
-| 无一级 Path | 根路径的独立分组键 | 使用原域名简称 |
-| 小组 / 超限组 | 特殊键 `__other__` | `other` |
+| Domain | Full hostname | `data.example.com` → `data` |
+| First-level path | Hostname + first nonempty path segment | `data.example.com/dorado/instance` → `data.dorado` |
+| Path whitelist, in Path mode | Full hostname | `cloud.example.com` → `cloud` |
+| Domain whitelist, in Domain mode | Hostname + first-level path | `data.example.com/dorado/instance` → `data.dorado` |
+| No path segment | Separate root-path key when path grouping applies | Short domain label |
+| Small / excess groups | `__other__` | `other` |
 
-Path 名称使用 **hostname 最左段 + `.` + 一级 Path**，不使用 query 或 hash。路径段会尝试 URL 解码；不同 hostname 即使显示简称相同，也不会合为同一个预分组。
+Path names use the **leftmost hostname segment + "." + first-level path**. Query parameters and hash do not affect grouping. Path segments are URL-decoded when possible. Different hostnames are not merged just because their display labels match.
 
-仅域名的简称规则保留旧行为：取最左段，连字符业务名前缀可截短；`www`、`bytedance` 等占位前缀回退到根域，`larkoffice` 使用 `lark` 别名。
+Domain-only short labels preserve existing rules: use the leftmost segment, shorten hyphenated prefixes, skip placeholder prefixes such as `www` or `bytedance`, and use the `larkoffice` → `lark` alias.
 
-两份分组白名单独立保存，切换整理方式不会清空：按域名分组时仅显示并使用“域名白名单”，名单内域名按一级 Path 分组；按 Path 分组时仅显示并使用“Path白名单”，名单内域名按域名分组。同一域名可加入两份名单，只有当前模式对应的名单生效。两者都支持 hostname 或 URL 输入，以及逗号、空格、换行分隔；保存时提取 hostname、去重并规范化，精确匹配 hostname，不自动包含子域名。它们不影响去重，也不同于“完全跳过整理 / 去重”的 URL 保护白名单。白名单中的 Path 分组沿用相同命名、最少标签数和最多分组数规则。
+Both whitelists are saved independently. Switching modes does not clear either list; only the active mode's list is shown and used. The same hostname may appear in both lists. Input accepts hostnames or URLs separated by commas, spaces, or new lines; Save extracts hostnames, normalizes, and deduplicates them. Matching is exact, not automatically inherited by subdomains.
 
-### 去重按钮
+These lists change grouping, not deduplication or URL protection. Whitelisted path groups use the same naming and minimum / maximum rules as other path groups.
 
-工具栏的重叠页面图标表示去重。只有 **完整 URL 字符串完全一致** 才视为重复，包括：
+### Deduplicate
 
-- hostname、Path、尾部斜杠；
-- 所有参数、参数值及参数顺序；
-- hash。
+The overlapping-page toolbar icon performs exact URL deduplication. The **entire URL string** must match, including:
 
-不会去除追踪参数、忽略 hash，也不会按域名或一级 Path 关闭不同页面。重复组中保留访问时间最大者，固定标签及 URL 保护白名单不参与。
+- Hostname, path, and trailing slash.
+- Every query parameter, value, and parameter order.
+- Hash.
 
-访问时间记录于激活、新建以及 URL 变化事件；它是最近访问 / 导航时间，不是阅读时长。已有标签的缺失记录优先使用 Chrome 的 `lastAccessed`，否则使用兜底值。时间相同则保留输入顺序靠前者。
+No tracking parameters are stripped. Different pages are never closed just because a domain or path matches. Pinned tabs and protected URLs are excluded. The tab with the greatest last-visited timestamp survives; ties keep the earlier input tab.
 
-## 设置
+Last-visited timestamps come from activation, creation, and URL-change events, not reading duration. Existing tabs use Chrome's `lastAccessed` when available, otherwise a fallback.
 
-点击工具栏的齿轮图标打开设置弹窗。设置项名称加粗，输入内容和说明文字保持普通字重；提示收纳在各设置项名称（label）右上角的小“?”，悬浮或点击可查看。问号不参与焦点切换，也不会在打开弹窗时自动聚焦；说明同时关联到对应输入控件，供读屏软件读取。主界面不外露这些配置。
+## Settings
 
-| 设置项 | 默认值 | 规则 |
+Open Settings using the toolbar gear. Labels are bold; input and hint text use normal weight. A 12px "?" sits at each label's upper-right corner. Hover or click to view the hint. The marker cannot take focus, and descriptions are associated with their input controls for screen readers.
+
+| Setting | Default | Rule |
 | --- | --- | --- |
-| 整理方式 | 按域名分组 | 域名 / 一级 Path |
-| 域名白名单 | 空 | 仅在按域名模式显示；名单内域名改按一级 Path 分组 |
-| Path白名单 | 空 | 仅在按 Path 模式显示；名单内域名改按域名分组 |
-| 最少标签数 | 3 | 正整数，达到此数量才独立成组 |
-| 最多分组数 | 15 | 正整数，始终生效，包含 `other`，没有启用勾选框 |
-| 组内标签排序 | 访问时间 | 创建时间：升序；访问时间：降序 |
-| 搜索记录保留 | 1 | 非负整数；0 不保留搜索历史 |
-| 搜索清空时间 | 60 秒 | 非负整数；每次输入重新计时，0 不自动清空 |
-| 主题 | 明亮 | 浅色 / 深色 |
+| Language | English | English / Simplified Chinese; Save applies, Cancel discards |
+| Organize by | Domain | Domain / First-level path |
+| Domain whitelist | Empty | Domain mode only; listed domains use first-level path grouping |
+| Path whitelist | Empty | Path mode only; listed domains use domain grouping |
+| Minimum tabs | 3 | Positive integer; smaller groups go to `other` |
+| Maximum groups | 15 | Positive integer, always enabled, includes `other` |
+| Tab order | Last visited | Created: oldest first; Last visited: newest first |
+| Search history | 1 | Nonnegative integer; 0 disables retention |
+| Search clear delay | 60 seconds | Restart on input; 0 disables automatic clearing |
+| Theme | Light | Light / Dark |
 
-只有点击“保存”才写入设置。取消、Esc、点击弹窗外部关闭时不保存草稿；保存进行中不响应外部点击取消。
+Whitelist fields are inline, 220px wide when space allows, and show two lines by default. Only Save writes settings. Cancel, Esc, or clicking outside closes without saving; outside cancellation is ignored during saving. Changing Language previews the settings labels, but other views update only after Save.
 
-Chrome 不提供旧标签的真实创建时间。插件记录新标签创建时刻；安装前已有标签使用首次记录顺序兜底。此排序不能恢复历史创建时间。
+Chrome does not expose historical creation times for existing tabs. New tabs are timestamped; older tabs use first-recorded order.
 
-## 搜索与焦点
+## Search and focus
 
-主界面只保留搜索输入框，不显示搜索按钮。输入实时匹配 URL 或标题，不区分大小写，首尾空白被忽略。
+There is an input field, not a separate search button. Filtering is immediate, case-insensitive, and ignores outer whitespace.
 
-- 用空格分隔多个关键词，所有关键词都需要匹配同一个标签页；每个关键词可分别匹配标题、URL 或拼音首字母，顺序不限。例如 `wx monitor` 可匹配标题含“微信”、URL 含 `monitor` 的标签页。连续空格、制表符及换行作为分隔符，空关键词忽略。
-- 支持中文标题的拼音首字母包含匹配，例如 `bd` 匹配“百度”、`wx` 匹配“微信”、`cqyh` 匹配“重庆银行”。空格及标点不打断首字母匹配，中英混合标题中的英文和数字保留原文。
-- 拼音转换在本地完成，词库随扩展打包，不调用远程服务；标题转换结果有数量上限的缓存。普通分组与 Recent 使用相同搜索规则。
-- 停止输入约 500ms、失焦或按 Enter 后自动记录关键词。
-- 最近记录在前；重复关键词不区分大小写，移到最近位置。
-- 保留条数由“搜索记录保留”控制，0 时不展示历史。
-- 最后一次输入或选择历史记录后，默认 60 秒自动清空当前搜索并恢复完整列表，不删除历史记录；中文输入法选字期间暂停计时。可在设置中修改超时时间，0 表示关闭；保存新超时时间后重新计时。
-- 点击 / 聚焦输入框显示历史下拉列表，可鼠标选择，或用方向键、Enter 选择；Esc 关闭下拉列表。
-- 删除输入内容恢复完整列表。搜索不改变原生标签或分组。
-- 初次打开界面或点击图标打开时尝试聚焦，等待侧边栏挂载后短暂重试；不会在每次标签操作后抢焦点。
+- All space-separated keywords must match the same tab. Each keyword can match a different field: title, URL, or pinyin initials. Order does not matter; repeated spaces, tabs, and new lines are separators.
+- Chinese-title pinyin initials are supported in either UI language: `bd` matches 百度, `wx` matches 微信, and `cqyh` matches 重庆银行. Spaces and punctuation do not interrupt initial matching; English letters and digits in mixed titles are preserved.
+- Conversion runs locally with a bundled dictionary and bounded cache. Groups and Recent use the same matcher.
+- History is recorded after roughly 500ms of inactivity, on blur, or on Enter. Latest first; case-insensitive duplicates move to the front.
+- Clicking / focusing the input opens history. Select with a mouse or arrow keys + Enter; Esc closes the dropdown. Search history = 0 hides it.
+- Typing or choosing history restarts Search clear delay. Expiry clears the query and restores all tabs without deleting history, focusing the input, or scrolling. IME composition pauses clearing until composition ends. Saving a new timeout restarts the countdown.
+- Clearing a query does not change native tabs / groups.
+- Initial opening or an explicit extension-icon opening attempts to focus search, with brief mount retries. Ordinary tab actions do not repeatedly steal focus. Switching UI language does not remount search or reset its timer / query.
 
-侧边栏只使用全局配置，每个窗口在切换标签时保持同一面板实例，不设置逐标签 `tabId` 专属面板。更新或重新加载扩展后旧配置清除，无需卸载。打开界面时尝试聚焦搜索，普通标签切换不重新挂载搜索框。关闭侧边栏使用 Chrome 原生关闭按钮。
+The side panel uses one global configuration, not per-tab panels. Switching tabs in a window keeps the same instance. Reloading clears older per-tab options. Use Chrome's native close button to close the side panel.
 
-## 标签行与窗口配色
+## Tab rows and window colors
 
-- 点击标签行激活原标签，并切换到所属窗口；列表更新时保持当前滚动位置，不主动滚到顶部 Recent。
-- 右侧的浏览时间、移动、复制、删除共享同一空间：正常显示时间，悬停或键盘聚焦显示三个按钮。
-- 点击“移动到其他窗口”图标选择目标窗口，列表显示窗口编号、标签数及活动页标题。支持移动到其他同一浏览模式的普通窗口末尾，不切换窗口；固定标签仍位于目标窗口固定标签区域。目标窗口活动页保持不变，原生分组不跨窗口继承。移动原窗口最后一个标签时，Chrome 会关闭该窗口。选择弹窗可用取消、Esc 或点击外部关闭。
-- 复制使用 `chrome.tabs.duplicate()`，复制的是标签页，不是复制 URL 到剪贴板。
-- 移动、复制与删除各占 18px 宽，间距 2px，操作栏共占 58px；移动和复制悬停用紫色，删除用红色。
-- 聚焦标签行时可用 Enter 激活，Backspace / Delete 关闭；内部操作按钮的键盘事件不触发行级动作。
-- 列表隐藏滚动条，但滚轮、触控板和正常滚动仍可用。
+- Click a row to activate its original tab and window. The list preserves scroll position and does not jump to Recent.
+- Last-visited time shares space with move, duplicate, and close buttons: time is shown normally; actions appear on hover or keyboard focus.
+- Move opens a picker with window IDs, tab counts, and active titles. Tabs move to the end of another normal window in the same browsing mode without switching focus; pinned tabs remain in the destination's pinned area. Destination activity is preserved. Native groups do not transfer across windows. Moving the source window's last tab closes that window in Chrome.
+- Duplicate uses `chrome.tabs.duplicate()`; it creates another tab, not a clipboard copy.
+- Actions are 18px each with 2px gaps: a 58px action area. Move / duplicate hover purple; close hovers red.
+- A focused row supports Enter to activate and Backspace / Delete to close. Internal action key events do not trigger row-level actions.
+- Scrollbars are hidden; mouse wheels, trackpads, and normal scrolling still work.
 
-所有窗口的标签都有左侧 **5px 彩色竖线**，竖线铺满标签行高度，与活动标签高亮贴合；行上下各留 1px 外部间距。
+All rows have a **5px window-color stripe**, full row height and flush with active highlights; each row has 1px external spacing above / below.
 
-窗口颜色由窗口 ID 固定映射到 10 色循环，依次使用蓝、橙、绿、紫、粉、青、黄、黄绿、靛、红（具体索引取 `windowId % 10`）。切换窗口、搜索或关闭其他窗口不会改变已有窗口的颜色；超过 10 个窗口或 ID 同余时会复用颜色。
+Window IDs map to a fixed 10-color rotation: blue, orange, green, purple, pink, cyan, yellow, yellow-green, indigo, red (`windowId % 10`). Searching or switching / closing other windows does not recolor existing ones; IDs with the same remainder reuse colors.
 
-各窗口当前活动标签均使用所属窗口的同色浅背景高亮，并显示窗口编号。当前聚焦窗口的活动标签额外描边。深色主题使用低饱和度深背景。
+Active tabs in every window have a pale matching background and window badge. The focused window's active tab gets an additional outline; dark mode uses subdued dark backgrounds.
 
-新标签优先继承 `openerTabId` 来源页的原生组；没有明确来源时使用同窗口最近激活的页面。支持继承 `other`，不跨窗口入组，不改变已入组或固定的新标签。创建时不会按 URL 重新分类；再次整理才应用分组规则。
+New tabs inherit the opener's native group, or the same window's recent active tab when no opener is known. This includes `other`. Existing groups and pinned tabs are not overridden; no cross-window inheritance. URL-based classification happens on the next Organize action.
 
-## 主界面渲染逻辑
+## Rendering logic
 
-主界面 / 侧边栏使用同一个 Dashboard 和 CardGrid：
+Dashboard and CardGrid power both the full tab manager and side panel:
 
-1. Dashboard 读取所有窗口标签、设置、创建时间、访问时间及当前聚焦窗口。
-2. CardGrid 使用完整标签集合计算预分组，应用最少标签数和最多分组数。
-3. 分组按标签数量即时更新顺序，不再延迟 30 秒。
-4. 新组按数量归位，消失的组不显示，`other` 始终在最后。
-5. 在完整分组之后筛选搜索结果，因此搜索不会让原组因命中数量少于最少标签数而进入 `other`。
-6. 组内按创建时间或访问时间排序，显示匹配数量、组内最新访问时间、相对时间和行操作。
-7. Recent 按访问时间倒序展示最多 8 个匹配标签，访问记录变化后防抖 500ms 更新成员与顺序；搜索、关闭标签及活动高亮即时更新。组内排序严格遵循配置：创建时间升序或访问时间降序。当前规则需要改变行序时防抖 3 秒；创建时间模式下单纯访问不会触发重排，访问时间模式下连续访问重新计时，普通刷新和搜索不重置计时。高亮和时间即时更新，新标签先追加，关闭的标签即时移除；重新载入、主动整理或切换排序配置立即应用所选规则。此延迟只影响插件列表，不移动 Chrome 原生标签。Recent 是同一标签的快捷视图，不计入分组汇总数量。
-8. 搜索时临时展开匹配组；清空后恢复原折叠状态。无匹配时展示空结果提示。
+1. Read all windows' tabs, settings, creation / visit timestamps, and the focused window.
+2. Compute planned groups from the full tab set and apply minimum / maximum rules.
+3. Update group order by count immediately; the old 30-second group-order delay is removed.
+4. Add / remove groups as needed, with `other` last.
+5. Filter after grouping, so a search cannot push a valid group into `other` due to too few matches.
+6. Order members by the selected setting; display counts, recent activity, relative times, and actions.
+7. Recent shows at most 8 matching tabs by visit time. Timestamp-driven membership / ordering is debounced 500ms; search, removal, and active highlighting update immediately. Main-list reordering follows the selected setting with a 3-second debounce. Mere visits do not reorder Created mode; ordinary refresh / search / language changes do not reset ordering timers. New tabs append initially; closed tabs disappear immediately. Reloading, explicit Organize, or changing sort mode applies ordering immediately. List-order delays never move native Chrome tabs. Recent is a shortcut view of the same tabs, not part of group totals.
+8. Search temporarily expands matching groups; clearing restores saved collapse state. No matches shows an empty state.
 
-标签新建、移除、更新、移动及设置变化触发查询刷新，激活、窗口焦点及访问时间变化局部更新。另有 30 秒定时刷新相对时间；它不是排序延迟，也不会自动执行原生一键整理。
+Creation, removal, updates, moves, and settings changes trigger queries; activation, focus, and timestamp changes update locally. A 30-second fallback refresh updates relative times; it is not a sort delay and does not auto-organize native tabs.
 
-### 已知边界 / 待改进
+### Known boundaries
 
-- **插件展示与原生组不一定一致**：Dashboard 对所有窗口汇总计算阈值，原生整理按窗口独立计算。例如两个窗口各 3 个同类标签，插件可能显示 6 个独立组，但每个原生窗口仍应进入 `other`。
-- CardGrid 展示的是规则计算结果，**不是 Chrome 原生 groupId 的直接映射**。新标签继承原组后，界面可能已按 URL 显示另一预分组。
-- 原生解除分组、建组或移动失败目前只记录后台日志；汇总中的参与数量并不代表所有入组调用成功。出现“界面新分组、原生仍在 other”需检查窗口计数与扩展 service worker 日志。
-- 创建时间、访问时间是浏览器 / 插件事件记录，不表示真实阅读时长；部分操作边界依赖 Chrome API 版本。
-- 普通手动关闭及关闭整组可通过界面的 5 秒 Undo 尝试恢复最近关闭会话；独立去重按钮不生成该 Undo 提示，可使用浏览器的恢复关闭标签功能。恢复依赖 `chrome.sessions`。
+- The dashboard applies thresholds across windows, while native Organize applies them per window. Two windows with 2 tabs each may form a 4-tab dashboard group but remain in native `other` with Minimum tabs = 3.
+- CardGrid shows computed groups, not a direct map of native `groupId`. Inherited native groups can temporarily differ from displayed URL-based groups.
+- Native ungroup / group / move failures currently go to background logs. Participating counts do not guarantee every native call succeeded.
+- Creation / visit times are event records, not reading duration; API behavior depends on Chrome version.
+- Manual close and close-group show a 5-second Undo when Chrome supplies restorable sessions. Deduplicate does not create this prompt. Recovery depends on `chrome.sessions`.
 
-## 安装与更新
+## Installation and updates
 
-### 🛍️ 方式 1：Chrome Web Store
+### 🛍️ Option 1: Chrome Web Store
 
-上架后可通过 Chrome Web Store 安装。原 README 提到商店审核，但目前仓库没有可核验的商店安装链接，暂不承诺上线时间；现阶段可使用下面的源码或 ZIP 安装方式。
+A verified public store URL is not recorded in this repository. Once published, install from the store; until then use source or ZIP installation below. Prepared release materials do not mean a version has been submitted or approved.
 
-### 🧑‍💻 方式 2：从源码加载（开发者）
+### 🧑‍💻 Option 2: Load from source
 
 ```bash
 git clone https://github.com/Peeeng/PowerfulTab.git
@@ -189,100 +192,102 @@ npm install
 npm run build
 ```
 
-然后：
+1. Open `chrome://extensions/`.
+2. Enable **Developer mode**.
+3. Click **Load unpacked** and select this repository's **`dist/`** folder.
+4. Click the PowerfulTab toolbar icon to open the side panel.
 
-1. 打开 `chrome://extensions/`。
-2. 右上角开启 **开发者模式**。
-3. 点击 **加载已解压的扩展程序**，选择本仓库 **`dist/`** 目录。
-4. 点击工具栏 PowerfulTab 图标，打开侧边栏使用。
+### 📦 Option 3: Load a ZIP
 
-### 📦 方式 3：从 ZIP 加载
+Extract the extension ZIP into a stable folder, enable Developer mode, then Load unpacked from the extracted folder containing `manifest.json`.
 
-下载或获取发布的扩展 ZIP，先解压到固定目录，再在 `chrome://extensions/` 中启用开发者模式，选择“加载已解压的扩展程序”，加载解压后含 `manifest.json` 的目录。
+Generate a release ZIP with `npm run release`; output: `release/dist.zip`.
 
-最新源码打包请执行 `npm run release`，产物为 `release/dist.zip`。
+### 🔄 Update / reload
 
-### 🔄 更新与重新加载
+After editing source, run `npm run build`, reload the extension in Chrome, and close / reopen existing side panels or tab-manager pages. Reloading an old extracted ZIP does not load this repository's new `dist/` code.
 
-源码修改后需重新 `npm run build`，在扩展页点击重新加载，并关闭后重新打开已有侧边栏 / 标签管理页面。重新加载旧 ZIP 的解压目录不会自动获取仓库 `dist/` 的新代码。
+Normal builds do not update `release/dist.zip`. Regenerate it only when preparing a release. Current language work remains Unreleased until a new version is prepared; the previous release ZIP is not replaced by a normal build.
 
-`release/dist.zip` 由 `npm run release` 生成，普通 build 不更新 ZIP。宣传图块已更新为 PowerfulTab；当前界面的真实产品截图仍需按 `release/05-screenshots.md` 拍摄，不能用宣传图代替。
-
-## 开发与代码入口
+## Development
 
 ```bash
-npm run dev      # 监听构建
-npm run build    # TypeScript 检查 + Vite 生产构建
-npm run release  # 构建并打包 release/dist.zip
+npm run dev      # Watch builds
+npm run build    # TypeScript check + production build
+npm run release  # Build and package release/dist.zip
+npm run promo    # Generate English branding artwork
 ```
 
 ```text
 src/
 ├── background/
-│   ├── index.ts                 # 时间记录、侧边栏状态、消息桥
-│   └── inherit-group.ts         # 新标签继承来源页分组
+│   ├── index.ts                 # Timestamps, side panel, message bridge
+│   └── inherit-group.ts         # New-tab native group inheritance
 ├── core/
-│   ├── grouping.ts              # 分组键、命名、阈值、原生入组
-│   ├── tabs.ts                  # 整理、独立去重、标签查询
-│   ├── dedupe.ts                # 完整 URL 精确去重
-│   ├── search.ts                # URL / 标题匹配、历史去重
-│   ├── storage.ts               # 设置、时间、搜索历史存储
-│   ├── sort.ts                  # 旧独立排序入口，主界面整理不调用
-│   └── types.ts                 # 设置与消息类型
-├── components/                 # 共享设置弹窗、操作 SVG 图标
+│   ├── grouping.ts              # Keys, names, thresholds, native groups
+│   ├── tabs.ts                  # Organize, deduplicate, tab queries
+│   ├── dedupe.ts                # Exact full-URL deduplication
+│   ├── search.ts                # URL / title / pinyin matching, history
+│   ├── i18n.ts                  # Typed English / Chinese messages
+│   ├── storage.ts               # Settings, timestamps, history
+│   ├── sort.ts                  # Legacy independent sorting
+│   └── types.ts                 # Settings and message types
+├── components/                 # Shared dialogs, icons, language context
 ├── dashboard/
-│   ├── Dashboard.tsx            # 状态刷新、操作、滚动保持
-│   ├── components/CardGrid.tsx  # 列表渲染、延迟组序、配色、行操作
-│   └── components/TabSearch.tsx # 搜索、历史下拉、焦点处理
-├── popup/                      # 备用 Popup 入口
+│   ├── Dashboard.tsx            # State, actions, scroll preservation
+│   ├── components/CardGrid.tsx  # Group lists, ordering, colors, actions
+│   └── components/TabSearch.tsx # Search, history, focus
+├── popup/                      # Fallback popup entry
 └── assets/icons/
 ```
 
-点击扩展图标实际打开侧边栏；Popup 页面保留为备用入口。Manifest 见 `manifest.config.ts`，Vite 多页面入口为 `index.html`、`sidepanel.html`、`popup.html`。
+The extension icon opens the side panel; Popup remains a fallback. Manifest: `manifest.config.ts`. Entry pages: `index.html`, `sidepanel.html`, `popup.html`.
 
-## 本地数据与权限
+## Local data and permissions
 
-没有新增远端数据服务，偏好、URL 保护白名单、搜索历史及时间记录保存在 `chrome.storage.local`；来源页激活历史保存在 `chrome.storage.session`。存储键统一使用 `powerfultab.*`；旧数据写入新键后才清理旧键，已有新数据优先保留。
+Preferences (including language), whitelists, search history, and timestamps stay in `chrome.storage.local`; source-tab activation history stays in `chrome.storage.session`. Keys use `powerfultab.*`. Migration writes new keys before removing older ones and keeps existing new-key data.
 
-| 权限 | 用途 |
+| Permission | Purpose |
 | --- | --- |
-| `tabs` | 查询、激活、复制、关闭及排列标签 |
-| `tabGroups` | 创建原生组、修改标题 / 颜色、移动组 |
-| `sessions` | 查询和恢复最近关闭会话 |
-| `storage` | 保存设置、历史、时间和会话状态 |
-| `sidePanel` | 打开 / 关闭侧边栏 |
-| `favicon` | 显示站点图标 |
+| `tabs` | Query, activate, duplicate, close, move, and order tabs |
+| `tabGroups` | Create native groups, set titles / colors, move groups |
+| `sessions` | Query and restore recently closed sessions |
+| `storage` | Local settings, history, timestamps, session state |
+| `sidePanel` | Show the tab manager in Chrome's side panel |
+| `favicon` | Display site icons |
 
-[隐私政策正文](docs/privacy.md) · [反馈 Issue](https://github.com/Peeeng/PowerfulTab/issues) · [MIT License](LICENSE)
+Language support adds no permissions, remote code, translation services, or uploads.
 
-### 隐私政策与商店上架
+[Privacy policy](docs/privacy.md) · [Report an issue](https://github.com/Peeeng/PowerfulTab/issues) · [MIT License](LICENSE)
 
-仅在自己的 Chrome 中加载本地扩展，不需要填写商店隐私政策网址。上架 Chrome Web Store 时则需要：按照 [Chrome 商店官方隐私政策要求](https://developer.chrome.com/docs/webstore/program-policies/privacy)，处理用户数据的扩展必须提供准确、最新的隐私政策。PowerfulTab 会在本地读取 URL、标题并保存搜索历史等数据；不上传数据不代表不处理数据。
+### Privacy policy and store submission
 
-政策正文已在 [docs/privacy.md](docs/privacy.md)，无需额外购买域名或服务器，可使用 GitHub Pages：
+PowerfulTab processes URLs, titles, and history locally. No uploads does not mean no data processing: disclose browsing activity truthfully and publish an accurate policy for store submission.
 
-1. 将最新的 `docs/` 文档提交并推送到 `Peeeng/PowerfulTab` 的 `main` 分支。
-2. 在 GitHub 仓库进入 **Settings → Pages**，Source 选择 **Deploy from a branch**。
-3. Branch 选择 **main**，目录选择 **/docs**，保存并等待部署完成。
-4. 用未登录的浏览器确认 `https://peeeng.github.io/PowerfulTab/privacy` 能打开完整政策，不返回 404，也不要求登录。
-5. 将该网址填入 Chrome Web Store 开发者后台的 **Privacy policy / 隐私政策 URL** 字段，并如实填写数据使用披露。
+The policy is in [docs/privacy.md](docs/privacy.md). No separate server or domain is required:
 
-这是预期部署地址，不表示页面已经发布；部署前可直接阅读仓库内的政策正文。政策说明本地处理的数据、使用目的、不上传与不共享、清除方式，以及联系邮箱 `Peeeng520@gmail.com`。功能或数据处理方式变化时应同步更新政策。
+1. Commit / push the current `docs/` to `Peeeng/PowerfulTab`, branch `main`.
+2. In GitHub **Settings → Pages**, choose **Deploy from a branch**.
+3. Select **main /docs**, save, and wait for deployment.
+4. Verify the full policy is publicly reachable without login at `https://peeeng.github.io/PowerfulTab/privacy`.
+5. Enter that URL in the store's Privacy policy field and complete accurate disclosures.
 
-## 🐱 设计
+This is an intended URL, not proof of deployment. Update the policy when behavior changes. Contact: `Peeeng520@gmail.com`.
 
-- 正式品牌图标为蓝紫色叠放浏览器标签与闪电；唯一源文件是 `src/assets/icons/icon.svg`。运行 `node scripts/render-icons.mjs` 生成扩展各尺寸 PNG，`npm run promo` 生成同款商店图标与宣传图，`npm run release` 会先重新生成扩展图标。
-- 手绘猫咪与品牌图标，保留原有轻松的视觉风格。
-- 辉光“一键整理”按钮，GSAP 3D 视差与悬停交互。
-- 浅色 / 深色主题、窗口彩色竖线与活动标签高亮。
-- 相对时间 `刚刚 / 5m / 2h / 3d`，中文界面与紧凑列表。
+## 🐱 Design
 
-## 🙏 贡献与反馈
+- Blue-purple browser tabs and a lightning bolt. Icon source: `src/assets/icons/icon.svg`. Render sizes with `node scripts/render-icons.mjs`; `npm run promo` creates the matching store icon and English artwork; release builds regenerate icons.
+- Hand-drawn cat and subtle visual motion.
+- Glowing Organize button with GSAP 3D hover parallax.
+- Light / dark themes, colored window stripes, and active highlights.
+- Compact rows with relative times such as Just now / 5m / 2h / 3d.
 
-欢迎通过 [Issue](https://github.com/Peeeng/PowerfulTab/issues) 反馈问题或提交 PR。开发前请核对本文的现有能力和已知边界，并运行 `npm run build` 验证改动。
+## 🙏 Contributing and feedback
 
-邮箱：Peeeng520@gmail.com。
+Open an [issue](https://github.com/Peeeng/PowerfulTab/issues) or a PR. Check current behavior / known boundaries and run `npm run build` before submitting.
 
-## 📄 许可
+Email: Peeeng520@gmail.com.
 
-MIT License。维护者：[Peeeng](https://github.com/Peeeng)；原版权声明见 [LICENSE](LICENSE)。
+## 📄 License
+
+MIT. Maintainer: [Peeeng](https://github.com/Peeeng). Copyright notices: [LICENSE](LICENSE).

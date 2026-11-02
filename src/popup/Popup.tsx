@@ -4,6 +4,8 @@ import { getSettings, setSettings } from '../core/storage';
 import SettingsDialog from '../components/SettingsDialog';
 import DedupeIcon from '../components/DedupeIcon';
 import SettingsIcon from '../components/SettingsIcon';
+import { I18nProvider } from '../components/I18nProvider';
+import { createTranslator, type LocalizedMessage } from '../core/i18n';
 
 function send<T>(msg: RuntimeMessage): Promise<RuntimeResponse<T>> {
   return new Promise((resolve) => {
@@ -18,7 +20,11 @@ export default function Popup(): JSX.Element {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [stats, setStats] = useState({ tabs: 0, windows: 0, domains: 0 });
   const [busy, setBusy] = useState(false);
-  const [hint, setHint] = useState('');
+  const [hint, setHint] = useState<LocalizedMessage | null>(null);
+  const language = settings?.language ?? 'en';
+  const t = createTranslator(language);
+
+  useEffect(() => { document.documentElement.lang = language; }, [language]);
 
   const refresh = async () => {
     setSettingsState(await getSettings());
@@ -29,41 +35,52 @@ export default function Popup(): JSX.Element {
     }
     setStats({ tabs: tabs.length, windows: new Set(tabs.map((tab) => tab.windowId)).size, domains: domains.size });
   };
-  useEffect(() => { void refresh(); }, []);
+  useEffect(() => {
+    void refresh();
+    const onChange = (changes: { [key: string]: chrome.storage.StorageChange }, area: string): void => {
+      if (area === 'local' && changes['powerfultab.settings']) void getSettings().then(setSettingsState);
+    };
+    chrome.storage.onChanged.addListener(onChange);
+    return () => chrome.storage.onChanged.removeListener(onChange);
+  }, []);
 
-  if (!settings) return <div className="powerful-popup">加载中…</div>;
+  if (!settings) return <div className="powerful-popup">{t('loading')}</div>;
 
   const organize = async () => {
     setBusy(true);
     const r = await send<{ grouped: number; groupsCreated: number }>({ type: 'organizeAll' });
     setBusy(false);
-    setHint(r.ok && r.data ? `归类 ${r.data.grouped} · 新建组 ${r.data.groupsCreated}` : `失败：${r.error ?? 'unknown'}`);
+    setHint(r.ok && r.data ? { key: 'grouped', params: { tabs: r.data.grouped, groups: r.data.groupsCreated } }
+      : { key: 'failed', params: { error: r.error ?? t('unknownError') } });
     void refresh();
   };
   const dedupe = async () => {
     setBusy(true);
     const r = await send<{ closed: number }>({ type: 'dedupeOnly' });
     setBusy(false);
-    setHint(r.ok && r.data ? `关闭完全重复 ${r.data.closed} 个` : `失败：${r.error ?? 'unknown'}`);
+    setHint(r.ok && r.data ? { key: 'deduped', params: { count: r.data.closed } }
+      : { key: 'failed', params: { error: r.error ?? t('unknownError') } });
     void refresh();
   };
 
   return (
+    <I18nProvider language={language}>
     <div className={`powerful-popup ${settings.theme === 'dark' ? 'powerful-dark' : 'powerful-light'}`}>
-      <header className="powerful-popup__header"><h1>PowerfulTab</h1><span className="powerful-popup__sub">把标签页变成宇宙</span></header>
+      <header className="powerful-popup__header"><h1>PowerfulTab</h1><span className="powerful-popup__sub">{t('tagline')}</span></header>
       <section className="powerful-popup__stats">
-        <div><strong>{stats.tabs}</strong><span>标签</span></div>
-        <div><strong>{stats.windows}</strong><span>窗口</span></div>
-        <div><strong>{stats.domains}</strong><span>域名</span></div>
+        <div><strong>{stats.tabs}</strong><span>{t('tabs')}</span></div>
+        <div><strong>{stats.windows}</strong><span>{t('windows')}</span></div>
+        <div><strong>{stats.domains}</strong><span>{t('domains')}</span></div>
       </section>
       <section className="powerful-popup__actions">
-        <button disabled={busy} onClick={() => void organize()} className="primary" title="只分组，不关闭标签">一键整理</button>
-        <button disabled={busy} onClick={() => void dedupe()} title="仅完整链接完全一致才去重" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}><DedupeIcon />去重</button>
-        <button disabled={busy} onClick={() => setSettingsOpen(true)} aria-label="设置" title="设置"><SettingsIcon /></button>
+        <button disabled={busy} onClick={() => void organize()} className="primary" title={t('organizeTitle')}>{t('organize')}</button>
+        <button disabled={busy} onClick={() => void dedupe()} title={t('dedupeTitle')} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}><DedupeIcon />{t('dedupe')}</button>
+        <button disabled={busy} onClick={() => setSettingsOpen(true)} aria-label={t('settings')} title={t('settings')}><SettingsIcon /></button>
       </section>
       {settingsOpen && <SettingsDialog settings={settings} onSave={async (next) => { setSettingsState(await setSettings(next)); }} onClose={() => setSettingsOpen(false)} />}
-      <button className="powerful-popup__open" onClick={() => void chrome.tabs.create({ url: chrome.runtime.getURL('index.html') })}>打开宇宙视图 →</button>
-      {hint && <div className="powerful-popup__hint">{hint}</div>}
+      <button className="powerful-popup__open" onClick={() => void chrome.tabs.create({ url: chrome.runtime.getURL('index.html') })}>{t('openView')}</button>
+      {hint && <div className="powerful-popup__hint">{t(hint.key, hint.params)}</div>}
     </div>
+    </I18nProvider>
   );
 }

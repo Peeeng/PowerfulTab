@@ -77,24 +77,26 @@ const items = [
     w: 440,
     h: 280,
     title: 'PowerfulTab',
-    subtitle: '标签整理 · 分组与搜索',
+    subtitle: 'Group. Search. Simplify.',
     titleFontSize: 36,
+    subtitleFontSize: 15,
   },
   {
     name: 'promo-marquee-1400x560.png',
     w: 1400,
     h: 560,
     title: 'PowerfulTab',
-    subtitle: '域名 / Path 分组 · 精确去重 · 标签搜索 · 本地运行',
+    subtitle: 'Domain / Path Groups · Exact Deduplication · Local Search',
+    subtitleFontSize: 25,
   },
 ];
 
 for (const it of items) {
-  const svg = brand(it.w, it.h, it.title, it.subtitle, { titleFontSize: it.titleFontSize });
+  const svg = brand(it.w, it.h, it.title, it.subtitle, { titleFontSize: it.titleFontSize, subtitleFontSize: it.subtitleFontSize });
   const out = resolve(OUT, it.name);
   await sharp(Buffer.from(svg)).png({ compressionLevel: 9 }).toFile(out);
   console.log(`✓ ${out}`);
 }
 
-console.log(`\n📸 Promo 图已生成于 ${OUT}`);
-console.log('   产品截图 (screen-1.png ~ screen-5.png) 请按 release/05-screenshots.md 手动拍。');
+console.log(`\n📸 English branding artwork generated in ${OUT}`);
+console.log('   Capture real product screenshots manually; see release/05-screenshots.md.');

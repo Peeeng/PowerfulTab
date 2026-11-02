@@ -1,6 +1,8 @@
 # PowerfulTab
 
-一键整理 Chrome 标签页：按域名分组、智能去重、按最近访问排序。
+Organize Chrome tabs by domain or first-level path, remove exact URL duplicates, and search across windows. Processing stays local.
 
-- [隐私政策 / Privacy Policy](privacy)
-- [GitHub 仓库](https://github.com/Peeeng/PowerfulTab)
+The interface defaults to English; Simplified Chinese is available in Settings.
+
+- [Privacy Policy](privacy)
+- [GitHub repository](https://github.com/Peeeng/PowerfulTab)

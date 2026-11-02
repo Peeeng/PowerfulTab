@@ -1,133 +1,144 @@
 # Changelog
 
-All notable changes to **PowerfulTab** will be documented in this file.
+All notable changes to **PowerfulTab** are documented here.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-每个版本同步记录新增功能、行为变化和修复。开发中的变更先记入 `Unreleased`，确定版本号时归入对应版本。以下标注“发布材料已准备”的版本不表示已上传商店或提交审核。
+New work is recorded under Unreleased, then moved to a numbered version when selected. "Release materials prepared" does not mean uploaded, submitted, or approved. Older dates and capabilities below are preserved from existing project records, not newly verified publication claims.
 
-## [0.1.10] - 发布材料已准备
+## [Unreleased] - Not published
 
 ### Added
 
-- 新增域名白名单：按域名分组时显示，名单内域名改按一级 Path 分组；Path 白名单仅在按 Path 分组时显示，名单内域名改按域名分组。两份名单独立保存，界面预分组和 Chrome 原生整理使用同一规则，不影响去重。
-- 设置新增“搜索清空时间”，默认 60 秒，0 表示关闭；每次输入或选择历史记录重新计时，超时清空当前搜索但保留搜索历史。
-- 中文输入法组合输入期间暂停自动清空，选字完成后重新计时；普通列表刷新不会重置计时或抢占搜索焦点。
+- Language selection: English by default, with Simplified Chinese available. Missing or invalid saved language values fall back to English; existing preferences remain intact.
+- Typed, bundled English / Chinese messages for settings, hints, toolbar, search, tab actions, window picker, status / error messages, Undo, relative times, and fallback popup. No remote translation or new permissions.
 
 ### Changed
 
-- 设置项提示收纳至名称（label）右上角的 12px 小“?”，悬浮或点击时展示；问号不再使用可聚焦按钮，移除聚焦触发提示的逻辑，避免打开设置时自动聚焦问号。
-- “搜索框保留数”更名为“搜索记录保留”，保留条数及已有配置不变。
-- Path 白名单改为与名称同行的紧凑输入框，默认显示两行，仍支持多域名和多行输入。
-- 两种分组白名单输入框宽度增加至 220px，窄界面自适应收缩，保持与名称同行。
-- 设置名称“Path白名单”移除中间空格。
+- English manifest description / action title, entry-page language / titles, README, release materials, permission explanations, privacy policy, and generated branding captions.
+- Language selection previews settings labels; Save applies across views, while Cancel discards. Tab titles, URLs, group names, search queries / history, collapse state, and ordering / search-clear timers are preserved.
+- Narrow toolbars wrap status text and hide the decorative cat when needed to fit English controls.
+- Added local language-storage, translation-coverage, UI-switching, and timer regression checks.
 
-## [0.1.9] - 发布材料已准备
+## [0.1.10] - Release materials prepared
 
 ### Added
 
-- 标签行支持将原标签移动到其他窗口，可通过窗口编号、标签数量和活动页标题选择目标窗口。
+- Domain whitelist in Domain mode: listed hostnames use first-level path grouping. Path whitelist is shown only in Path mode and uses domain grouping for listed hosts. Independent lists use shared UI / native grouping rules and do not affect deduplication.
+- Search clear delay, default 60 seconds; 0 disables it. Input or history selection restarts the timer; expiry clears the query but keeps history.
+- IME composition pauses clearing until completion. Ordinary list refreshes do not restart the timer or steal search focus.
 
 ### Changed
 
-- 移动、复制、删除按钮更紧凑，操作区缩至 58px，为标签名称留出更多空间。
-- Recent 访问记录变化后防抖 500ms 更新；搜索筛选和活动标签高亮仍即时生效。
-- 最少标签数默认 3，最多分组数默认 15（含 other），保留已有保存配置。
-- 清理旧品牌命名，本地设置和搜索历史自动迁移。
-- 移除扩展快捷键功能，保留打开界面时尝试聚焦搜索框。
-- 所有处理在本地进行，本版未增加权限。
+- Settings hints moved to 12px non-focusable question marks at label upper-right corners.
+- Renamed the Chinese search-retention setting without changing saved values.
+- Path whitelist became an inline two-line input; both whitelist fields expanded to 220px with narrow-view shrinking.
+- Removed the space in the Chinese Path-whitelist label.
 
-## [0.1.8] - 发布材料已准备
+## [0.1.9] - Release materials prepared
 
 ### Added
 
-- 支持中文标题拼音首字母搜索，例如 `bd` 搜“百度”、`wx` 搜“微信”。
-- 支持空格分隔多个关键词，全部关键词匹配才显示，顺序不限。
-- 每个关键词可分别匹配标题、URL 或拼音首字母；忽略连续空格及首尾空白。
-- 搜索在本地运行，拼音词库随扩展打包，未增加权限。
+- Move a tab to another window, choosing by window ID, tab count, and active-page title.
+
+### Changed
+
+- Compacted move / duplicate / close actions to 58px to leave more title space.
+- Recent visit updates debounced 500ms; search and active highlights remain immediate.
+- Default minimum 3 tabs and maximum 15 groups (including other), preserving saved settings.
+- Removed older branding and migrated local settings / search history.
+- Removed extension shortcut functionality; opening the interface still attempts search focus.
+- Local processing; no additional permissions.
+
+## [0.1.8] - Release materials prepared
+
+### Added
+
+- Chinese-title pinyin-initial search, such as `bd` for Baidu and `wx` for WeChat.
+- Space-separated keywords that must all match, regardless of order.
+- Each keyword can match title, URL, or initials independently; repeated and outer whitespace is ignored.
+- Local search with a bundled dictionary and no additional permissions.
 
 ## [0.1.4] - 2026-10-30
 
-- 组内重排严格按配置选择创建时间升序或访问时间降序，需要改变顺序时防抖 3 秒；创建时间模式不会因访问事件重排。
-- 删除侧边栏开关命令，保留 Ctrl+Shift+F 搜索聚焦；移除 Recent 10 秒和分组排序 30 秒延迟。
-- 去掉逐标签侧边栏配置，统一使用全局面板，避免同窗口切换标签时更换实例并重新排序、抢搜索焦点。
-- 开关兼容逻辑不再创建 tabId 专属面板；扩展重新加载或更新后清除旧配置。
+- Group-member ordering follows the configured Created (ascending) or Last visited (descending) mode with a 3-second debounce when order changes; visits do not reorder Created mode.
+- Removed the side-panel toggle command, retaining the then-existing Ctrl+Shift+F focus command; removed the 10-second Recent and 30-second group-order delays.
+- Replaced per-tab side-panel configuration with a global panel to avoid same-window remounts, sorting, and search-focus grabs.
+- Compatibility logic no longer creates tabId-specific panels; reload / update clears old options.
 
 ## [0.1.3] - 2026-10-30
 
-- 同窗口点击不再重复聚焦窗口；激活和访问时间变化只局部更新列表，避免重复全量刷新。
-- 新增 Ctrl+Shift+F 聚焦搜索栏命令，与侧边栏开关快捷键独立；macOS 使用 Control。
-- Recent 新成员与访问排序在活动停止 10 秒后更新，避免新标签进入时立即替换列表行。
-- npm 项目名与本地目录统一为 PowerfulTab，保留旧存储键。
-- 修复点击标签后列表跳跃：本次使用期间固定组内与 Recent 已有行序，仅更新时间和高亮；主动整理或修改排序方式后重新排序。
+- Same-window activation no longer refocuses the window; active / visit changes update locally rather than repeatedly querying everything.
+- Added the then-existing Ctrl+Shift+F search-focus command, independent of the side-panel toggle; macOS used Control.
+- Recent membership / visit ordering updated after 10 seconds of inactivity.
+- Unified npm / local project naming under PowerfulTab while retaining the then-existing storage keys.
+- Fixed list jumping by keeping existing row order during a session and updating only timestamps / highlights; Organize or sort-setting changes reordered.
 
 ## [0.1.2] - 2026-10-29
 
-- 产品名称与项目链接更新为 PowerfulTab，联系邮箱为 Peeeng520@gmail.com。
-- 一键整理仅分组；支持域名 / 一级 Path、域名白名单、最少标签数与最多分组数。
-- 独立完整 URL 精确去重按钮，保留最近访问的标签。
-- 增加标题 / URL 搜索、可配置搜索历史、快捷键开关侧边栏、复制标签和新标签继承分组。
-- 快捷键统一在 Chrome 扩展快捷键页面管理，插件不指定默认组合键。
-- 增加多窗口配色、活动标签高亮、组内时间排序与 30 秒延迟重排序。
-- 更新隐私政策、商店文案、权限说明和品牌宣传图；准备发布包，尚未提交 Chrome Web Store 审核。
+- Updated product name and project links to PowerfulTab; contact Peeeng520@gmail.com.
+- Organize became grouping-only, with domain / first-level path, hostname exceptions, minimum tabs, and maximum groups.
+- Separate exact full-URL deduplication retained the most recently visited tab.
+- Added title / URL search, configurable history, the then-existing side-panel shortcut, duplication, and new-tab group inheritance.
+- Shortcuts were managed in Chrome's extension-shortcut settings without extension-defined defaults.
+- Added window colors, active highlighting, group-member time sorting, and a 30-second reorder delay.
+- Updated privacy policy, store text, permission explanations, and branding; prepared a package without submitting to review.
 
 ## [0.1.1] - 2026-06-12
 
-🐛 **Bugfix release** — focused on tab-group correctness and cleaner visuals.
+Bugfix release focused on native-group correctness and visuals, as recorded in existing release notes.
 
 ### Fixed
-- 🪟 **重复分组消失**：每次「一键整理」会先把目标标签从旧组解绑，再统一建新组，杜绝并排出现多个同名 chip（如 `[lark][其他][lark]`）的问题
-- 🧷 **整理后跨域污染**：调整了"去重 → 排序 → 分组"的顺序（之前 sort 会把 github 插进 aidp 组），现在同域名 tab 永远只会归到自己的组
-- 🔗 **manifest `homepage_url`** 修正为正确的仓库地址 `Peeeng/PowerfulTab`
+
+- Ungrouped target tabs before rebuilding groups to prevent duplicate same-name chips.
+- Adjusted the then-existing deduplicate → sort → group sequence to prevent tabs from entering another domain's group.
+- Corrected manifest homepage_url to the Peeeng/PowerfulTab repository.
 
 ### Changed
-- 🎨 **配色改为淡色系**：分组颜色限定在 `blue · cyan · pink · purple` 四种柔和色，移除高饱和的 red / yellow / green，`grey` 留给特殊用途
-- 🏷 **组名简化**：标签栏 chip 上的标题从完整 hostname 缩成业务标识：
-  - `aidp.bytedance.net` → **aidp**
-  - `neeko-aidp.bytedance.net` → **neeko**
-  - `meego.larkoffice.com` → **meego**
-  - `bytedance.larkoffice.com` → **lark**（首段是租户名时回退到根域 + 别名表）
-  - `www.notion.so` → **notion**
-- 🚫 **不再为零散 tab 建「其他」组**：单独域名的 tab 直接散落在标签栏，不占用 chip 空间
+
+- Group colors limited to blue, cyan, pink, and purple; gray reserved for special cases.
+- Shortened group titles from hostnames to business labels:
+  - `aidp.bytedance.net` → aidp.
+  - `neeko-aidp.bytedance.net` → neeko.
+  - `meego.larkoffice.com` → meego.
+  - `bytedance.larkoffice.com` → lark via tenant fallback / alias.
+  - `www.notion.so` → notion.
+- The then-existing behavior left isolated single-domain tabs ungrouped rather than creating an Other chip.
 
 ### Tech
-- 新增 `clusterByDomain` 排序策略：簇间按"簇内最近访问时间"降序，簇内按 `lastAccessed` 降序
 
----
+- Added clusterByDomain: clusters ordered by their most recent visit, members by lastAccessed descending.
 
 ## [0.1.0] - 2026-06-10
 
-🚀 **First public release** — submitted to Chrome Web Store.
+The existing historical record described this as the first public release submitted to Chrome Web Store.
 
 ### Added
-- 🚀 **一键整理**：把所有打开的标签按域名自动归入 Chrome 原生标签组
-- 🧹 **三种去重模式**：
-  - `Strict`：URL 完全相同才合并
-  - `Loose`：忽略 `#hash` 和追踪参数后比对（推荐）
-  - `Domain`：同一域名只保留最近访问的一个（激进）
-- ⏱ **最近访问排序**：基于 `chrome.tabs.onActivated` 实时打点，置顶刚用过的标签
-- ↩️ **撤销关闭**：基于 `chrome.sessions` 的一键 Undo
-- 🛡 **白名单保护**：固定标签 / 加白页面永不被自动关闭
-- 🪟 **侧边栏视图**：通过 `chrome.sidePanel` 在浏览器侧栏快速浏览
-- 🌗 **浅色 / 深色主题**：跟随系统或手动切换
-- ❌ **单标签关闭**：卡片尾部 hover 才显示 ×，不与时间戳重叠
-- 🎨 **品牌资产**：iOS 风蓝色文件夹 + sparkle 扩展图标
-- 🐱 **手绘趴猫 + GSAP 3D 视差**：工具栏的细节交互
-- 🔒 **隐私政策**：100% 本地运行，零数据收集（[查看](https://peeeng.github.io/PowerfulTab/privacy)）
+
+- One-click domain grouping into native Chrome groups.
+- Three historical deduplication modes: Strict (exact URL), Loose (ignore hash / tracking parameters), and Domain (keep one recently visited tab per domain).
+- Recent-visit ordering using chrome.tabs.onActivated timestamps.
+- Undo using chrome.sessions.
+- Pinned-tab / whitelist protection.
+- Side-panel view using chrome.sidePanel.
+- Light / dark themes with system or manual selection.
+- Hover-only single-tab close actions, separate from timestamps.
+- Historical blue folder / sparkle icon assets.
+- Hand-drawn cat and GSAP 3D toolbar parallax.
+- Local-processing privacy policy at the recorded [policy URL](https://peeeng.github.io/PowerfulTab/privacy).
 
 ### Tech
-- Manifest V3 + Service Worker
-- TypeScript 5 + React 18
-- Vite 7 + `@crxjs/vite-plugin`
-- GSAP 用于工具栏微交互
 
-### Known Limitations
-- 仅支持 Chromium 系浏览器（Chrome / Edge / Brave / Arc）
-- 不支持 iframe 内容
-- `Domain` 模式对多账号场景（如多个 Gmail）需谨慎使用
+- Manifest V3 + service worker.
+- TypeScript 5 + React 18.
+- Vite 7 + @crxjs/vite-plugin, as recorded in the historical notes.
+- GSAP toolbar interactions.
 
----
+### Known limitations recorded at the time
+
+- Chromium-family browsers only (Chrome / Edge / Brave / Arc).
+- No iframe-content support.
+- The old Domain deduplication mode required caution with multiple-account tabs.
 
 [0.1.1]: https://github.com/Peeeng/PowerfulTab/releases/tag/v0.1.1
 [0.1.0]: https://github.com/Peeeng/PowerfulTab/releases/tag/v0.1.0

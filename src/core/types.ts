@@ -25,8 +25,10 @@ export type SortMode = 'lastAccessed' | 'domain';
 export type SortScope = 'perWindow' | 'merged';
 export type GroupMode = 'domain' | 'path';
 export type Theme = 'light' | 'dark';
+export type Language = 'en' | 'zh-CN';
 
 export interface Settings {
+  language: Language;
   groupMode: GroupMode;
   sortScope: SortScope;
   theme: Theme;

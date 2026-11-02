@@ -1,79 +1,45 @@
-## 05 · 截图脚本
+# 05 · Screenshot guide
 
-商店要求 **1280×800** 或 640×400 的产品截图，至少 1 张，推荐 3-5 张。
+Use **1280×800** or **640×400** real product screenshots, JPEG or 24-bit RGB PNG without alpha. Check the current store dashboard for required counts and additional assets.
 
-当前可上传文件为 `release/screenshots/screen-1.png`、`screen-2.png`（1280×800、24 位 RGB PNG、无 alpha）；带 `-1280x800` 后缀的文件为相同内容。原始竖图保存在 `release/screenshots/originals/`，不要直接上传原图。重新转换可运行 `node scripts/prepare-store-screenshots.mjs`。这些截图尚未脱敏，公开发布前需处理内部信息。
+Existing files `screenshots/screen-1.png` and `screen-2.png` are 1280×800 RGB PNG; `-1280x800` aliases contain the same images. Originals are in `screenshots/originals/`.
 
----
+These are older screenshots, not regenerated English UI captures. They may contain internal or private information. Do not upload them publicly without checking and redacting; ideally replace them with current, safe English captures. Run `node scripts/prepare-store-screenshots.mjs` to convert new originals to the required format.
 
-### 必拍场景（按重要性排序）
+## Capture scenarios
 
-| # | 场景 | 设备视图 | 重点展示 |
-| --- | --- | --- | --- |
-| 1 | **Dashboard 全景** | 普通 Chrome 窗口 | 多个域名分组 + Recent + 一键整理按钮 |
-| 2 | **整理过程** | 同上 | 点击"一键整理"后标签合并到 Chrome 原生标签组 |
-| 3 | **整理与搜索设置** | 同上 | 域名 / Path 整理方式、分组规则、搜索历史和组内排序 |
-| 4 | **暗色主题** | 同上 + 深色模式 | 同 #1 但是深色，体现双主题 |
-| 5 | **侧边栏视图** | 缩窄到 360px | 体现侧边栏紧凑布局 + 关闭按钮 hover |
+| Scene | Show |
+| --- | --- |
+| Dashboard | Domain groups, Recent, Organize, and compact actions |
+| Native organizing | Chrome groups after Organize |
+| Settings | English language, mode-specific whitelist, limits, history, clear delay, and tab order |
+| Dark theme | Matching window colors and active highlights |
+| Side panel | Compact rows and hover actions |
 
----
+## Capture
 
-### 怎么拍
+1. Load the current `dist/` in a clean test Chrome profile.
+2. Set Settings → Language → English and Save.
+3. Open public sample pages with non-sensitive titles.
+4. Open DevTools, enable Device Mode, choose Responsive, and set 1280×800 at 100% scale.
+5. Use the DevTools screenshot command, or capture the real window and crop to an allowed size without distortion.
+6. Save originals in `screenshots/originals/`, then run the conversion script.
 
-#### 方式 A：Chrome DevTools Device Mode（推荐）
+## Privacy checks
 
-1. 打开 Dashboard / 侧边栏，按 **F12**
-2. DevTools 顶栏点 📱 切到 Device Mode
-3. 顶部下拉选 **Responsive** → 输入尺寸 `1280 × 800`
-4. 缩放比例选 100%
-5. 摆好界面后右上角三点菜单 → **Capture screenshot**
-6. 保存到 `release/screenshots/screen-1.png ~ screen-5.png`
+- [ ] No internal hostnames, private documents, messages, tokens, query secrets, personal bookmarks, or real browsing history.
+- [ ] Use public sample websites such as GitHub, Wikipedia, or documentation pages.
+- [ ] Verify titles, URLs, account badges, and window names.
+- [ ] Screenshots must show actual implemented functionality, not fabricated mockups.
 
-#### 方式 B：macOS 原生截图
+## Branding assets
 
-1. 把窗口手动调到 1280×800 附近
-2. `⌘ + Shift + 4 + Space` 截整窗口
-3. 用 Preview / 在线工具裁切到精确 1280×800
+`npm run promo` creates English branding artwork, not product screenshots:
 
----
+| Asset | Size |
+| --- | --- |
+| `icon-128.png` | 128×128 |
+| `promo-small-440x280.png` | 440×280 |
+| `promo-marquee-1400x560.png` | 1400×560 |
 
-### 拍摄前检查清单
-
-- [ ] 把示例标签替换成**公开网站**（GitHub / Wikipedia / Google / YouTube / Notion / Figma）
-  - **绝对不要**出现公司内部域名（aidp.bytedance.net、meego.larkoffice.com 等）
-  - 不要上传含私密文档、消息或真实浏览历史的截图
-- [ ] 确保示例标签名称无敏感信息
-- [ ] 关闭书签栏 / 隐藏开发者书签
-- [ ] 浏览器使用单独的干净测试 profile，在其中加载本地 dist 扩展并打开公开示例标签
-- [ ] 暗色主题截图前切深色
-
----
-
-### 商店额外图块（需要 PNG，已自动生成）
-
-| 图块 | 尺寸 | 文件 | 是否必填 |
-| --- | --- | --- | --- |
-| 商店图标 | 128×128 | `icon-128.png` | **必填** |
-| 小宣传图块 | 440×280 | `promo-small-440x280.png` | **必填** |
-| 大宣传图块 | 1400×560 | `promo-marquee-1400x560.png` | 推荐 |
-
-这三张会由 `npm run promo` 用品牌色和 logo 自动渲出。运行：
-
-```bash
-npm run promo
-```
-
-输出到 `release/screenshots/`。
-
----
-
-### 文案蒙层建议（可选，提高点击率）
-
-如果想给截图加文字标题（"一键整理 30+ 标签"等），推荐：
-
-- 字体：与品牌一致的中文 + 英文混排（Inter + 思源黑体 / PingFang）
-- 颜色：白底场景用深色文字 (#1a1a1a)，深色场景用 (#fafafa)
-- 字号：72-96pt 主标题 + 32pt 副标题
-- 工具：Figma / Canva / Pixelmator / 上面给的 promo 图也是程序化叠字
-
-不加文字直接用纯界面截图也完全可以，简洁更易过审。
+Optional English captions can explain a real screenshot. Do not replace UI captures with branding tiles or make unsupported feature claims.

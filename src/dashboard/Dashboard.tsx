@@ -15,6 +15,8 @@ import CardGrid from './components/CardGrid';
 import SettingsDialog from '../components/SettingsDialog';
 import MoveTabDialog from '../components/MoveTabDialog';
 import TabSearch from './components/TabSearch';
+import { I18nProvider } from '../components/I18nProvider';
+import { createTranslator, type LocalizedMessage } from '../core/i18n';
 import './dashboard.css';
 
 function send<T>(msg: RuntimeMessage): Promise<RuntimeResponse<T>> {
@@ -42,7 +44,7 @@ export default function Dashboard(): JSX.Element {
   const [createdAt, setCreatedAt] = useState<LastAccessedMap>({});
   const [focusedWindowId, setFocusedWindowId] = useState<number>();
   const [busy, setBusy] = useState(false);
-  const [hint, setHint] = useState<string>('');
+  const [hint, setHint] = useState<LocalizedMessage | null>(null);
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
   const [undo, setUndo] = useState<UndoState | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -56,6 +58,13 @@ export default function Dashboard(): JSX.Element {
   const refreshVersion = useRef(0);
   const currentWindowId = useRef<number>();
   const latestActiveTabs = useRef(new Map<number, number>());
+  const language = settings?.language ?? 'en';
+  const t = useMemo(() => createTranslator(language), [language]);
+
+  useEffect(() => {
+    document.documentElement.lang = language;
+    document.title = t(document.body.classList.contains('powerful-body--side') ? 'sideTitle' : 'viewTitle');
+  }, [language, t]);
 
   useLayoutEffect(() => {
     // 行顺序不随激活改变；仍保留刷新前的滚动位置。
@@ -154,7 +163,7 @@ export default function Dashboard(): JSX.Element {
   void tabIds;
 
   if (!settings) {
-    return <div className="powerful-dash powerful-dash--loading">加载中…</div>;
+    return <div className="powerful-dash powerful-dash--loading">{t('loading')}</div>;
   }
 
   const themeClass = settings.theme === 'dark' ? 'powerful-dark' : 'powerful-light';
@@ -202,36 +211,37 @@ export default function Dashboard(): JSX.Element {
 
   const onOrganize = async (): Promise<void> => {
     setBusy(true);
-    setHint('整理中…');
+    setHint({ key: 'organizing' });
     const r = await send<{ closed: number; grouped: number; groupsCreated: number }>({
       type: 'organizeAll',
     });
     setBusy(false);
     if (r.ok && r.data) {
-      setHint(`已分组 ${r.data.grouped} 个标签 · ${r.data.groupsCreated} 个组`);
+      setHint({ key: 'grouped', params: { tabs: r.data.grouped, groups: r.data.groupsCreated } });
     } else {
-      setHint(`失败：${r.error ?? 'unknown'}`);
+      setHint({ key: 'failed', params: { error: r.error ?? t('unknownError') } });
     }
     void refresh(true);
   };
 
   const onDedupe = async (): Promise<void> => {
     setBusy(true);
-    setHint('去重中…');
+    setHint({ key: 'deduping' });
     const r = await send<{ closed: number }>({ type: 'dedupeOnly' });
     setBusy(false);
-    setHint(r.ok && r.data ? `已关闭完全重复 ${r.data.closed} 个` : `失败：${r.error ?? 'unknown'}`);
+    setHint(r.ok && r.data ? { key: 'deduped', params: { count: r.data.closed } }
+      : { key: 'failed', params: { error: r.error ?? t('unknownError') } });
     void refresh();
   };
 
   const onActivate = (tab: TabInfo): void => {
     listScrollTop.current = listRef.current?.scrollTop ?? 0;
     void activateTab(tab, currentWindowId.current ?? focusedWindowId)
-      .catch(() => setHint('切换标签失败'));
+      .catch(() => setHint({ key: 'activateFailed' }));
   };
 
   const onDuplicate = (tab: TabInfo): void => {
-    void chrome.tabs.duplicate(tab.id).then(() => refresh()).catch(() => setHint('复制标签失败'));
+    void chrome.tabs.duplicate(tab.id).then(() => refresh()).catch(() => setHint({ key: 'duplicateFailed' }));
   };
 
   const onToggleCollapse = (key: string): void => {
@@ -253,10 +263,11 @@ export default function Dashboard(): JSX.Element {
   };
 
   return (
+    <I18nProvider language={language}>
     <div className={`powerful-dash ${themeClass}`}>
       <Toolbar
         busy={busy}
-        hint={hint}
+        hint={hint ? t(hint.key, hint.params) : ''}
         theme={settings.theme}
         onTheme={(t: Theme) => void apply({ theme: t })}
         onOrganize={onOrganize}
@@ -266,7 +277,7 @@ export default function Dashboard(): JSX.Element {
 
       {settingsOpen && <SettingsDialog settings={settings} onSave={apply} onClose={() => setSettingsOpen(false)} />}
       {movingTab && <MoveTabDialog tab={movingTab} onClose={() => setMovingTab(null)} onMoved={() => {
-        setHint('已移动标签');
+        setHint({ key: 'moved' });
         void refresh();
       }} />}
 
@@ -302,14 +313,15 @@ export default function Dashboard(): JSX.Element {
 
       {undo && (
         <div className="powerful-toast" role="status" aria-live="polite">
-          <span className="powerful-toast__msg">已关闭 {undo.count} 个标签</span>
+          <span className="powerful-toast__msg">{t('closed', { count: undo.count })}</span>
           {undo.sessionIds.length > 0 && (
             <button className="powerful-toast__action" onClick={() => void restoreUndo()}>
-              撤销
+              {t('undo')}
             </button>
           )}
         </div>
       )}
     </div>
+    </I18nProvider>
   );
 }

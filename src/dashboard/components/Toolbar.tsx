@@ -3,6 +3,7 @@ import gsap from 'gsap';
 import DedupeIcon from '../../components/DedupeIcon';
 import SettingsIcon from '../../components/SettingsIcon';
 import type { Theme } from '../../core/types';
+import { useI18n } from '../../components/I18nProvider';
 
 interface Props {
   busy: boolean;
@@ -94,6 +95,7 @@ function CatDoodle(): JSX.Element {
 }
 
 export default function Toolbar(props: Props): JSX.Element {
+  const t = useI18n();
   const {
     busy,
     hint,
@@ -169,8 +171,8 @@ export default function Toolbar(props: Props): JSX.Element {
           className="powerful-toolbar__primary"
           onClick={handleOrganize}
           disabled={busy}
-          title="一键整理：仅分组，不关闭标签"
-          aria-label="一键整理"
+          title={t('organizeTitle')}
+          aria-label={t('organize')}
         >
           <span className="powerful-toolbar__primary-bg" aria-hidden />
           <span className="powerful-toolbar__primary-inner" ref={innerRef}>
@@ -190,7 +192,7 @@ export default function Toolbar(props: Props): JSX.Element {
                 strokeLinejoin="round"
               />
             </svg>
-            <span>{busy ? '整理中…' : '一键整理'}</span>
+            <span>{t(busy ? 'organizing' : 'organize')}</span>
             <svg
               className="powerful-btn__sparkle"
               width="9"
@@ -220,17 +222,17 @@ export default function Toolbar(props: Props): JSX.Element {
           className="powerful-toolbar__icon-btn powerful-toolbar__icon-btn--wide"
           onClick={onDedupe}
           disabled={busy}
-          title="仅关闭完整链接完全一致的重复标签（包含 path、参数和 hash）"
+          title={t('dedupeTitle')}
         >
           <DedupeIcon />
-          去重
+          {t('dedupe')}
         </button>
-        <button className="powerful-toolbar__icon-btn" onClick={onSettings} disabled={busy} aria-label="设置" title="设置"><SettingsIcon /></button>
+        <button className="powerful-toolbar__icon-btn" onClick={onSettings} disabled={busy} aria-label={t('settings')} title={t('settings')}><SettingsIcon /></button>
         <button
           className="powerful-toolbar__icon-btn"
           onClick={() => onTheme(theme === 'dark' ? 'light' : 'dark')}
-          title={theme === 'dark' ? '切换到明亮' : '切换到深色'}
-          aria-label="切换主题"
+          title={t(theme === 'dark' ? 'switchLight' : 'switchDark')}
+          aria-label={t('switchTheme')}
         >
           {theme === 'dark' ? (
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden>

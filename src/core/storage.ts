@@ -1,5 +1,6 @@
 import type { Settings, Whitelist, LastAccessedMap } from './types';
 import { migrateStorage } from './storage-migration';
+import { normalizeLanguage } from './i18n';
 
 const SETTINGS_KEY = 'powerfultab.settings';
 const WHITELIST_KEY = 'powerfultab.whitelist';
@@ -18,6 +19,7 @@ export async function setSearchHistory(history: string[], count = 1): Promise<vo
 }
 
 const DEFAULT_SETTINGS: Settings = {
+  language: 'en',
   groupMode: 'domain',
   sortScope: 'perWindow',
   theme: 'light',
@@ -86,6 +88,7 @@ export async function getSettings(): Promise<Settings> {
   const res = await chrome.storage.local.get(SETTINGS_KEY);
   const stored = res[SETTINGS_KEY] as (Partial<Settings> & { dedupeMode?: string }) | undefined;
   const settings = { ...DEFAULT_SETTINGS, ...(stored ?? {}) };
+  settings.language = normalizeLanguage(settings.language);
   settings.groupMode = stored?.groupMode ?? (stored?.dedupeMode === 'path' ? 'path' : 'domain');
   settings.maxGroupCount = normalizeMaxGroupCount(settings.maxGroupCount);
   settings.minGroupTabs = normalizeMinGroupTabs(settings.minGroupTabs);
@@ -96,6 +99,7 @@ export async function getSettings(): Promise<Settings> {
 
 export async function setSettings(patch: Partial<Settings>): Promise<Settings> {
   const next = { ...(await getSettings()), ...patch };
+  next.language = normalizeLanguage(next.language);
   next.minGroupTabs = normalizeMinGroupTabs(next.minGroupTabs);
   next.searchClearTimeoutSeconds = normalizeSearchClearTimeout(next.searchClearTimeoutSeconds);
   await chrome.storage.local.set({ [SETTINGS_KEY]: next });

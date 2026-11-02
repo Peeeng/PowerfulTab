@@ -3,6 +3,8 @@ import type { LastAccessedMap, TabInfo } from '../../core/types';
 import { applyGroupingRules, groupByDomain, safeHostname } from '../../core/grouping';
 import { matchesTabSearch } from '../../core/search';
 import { useStableTabOrder } from './useStableTabOrder';
+import { useI18n } from '../../components/I18nProvider';
+import type { Translator } from '../../core/i18n';
 
 interface Props {
   tabs: TabInfo[];
@@ -37,10 +39,10 @@ function faviconUrl(url: string): string {
   }
 }
 
-function formatAgo(ts: number | undefined): string {
+function formatAgo(ts: number | undefined, t: Translator): string {
   if (!ts) return '—';
   const diff = Date.now() - ts;
-  if (diff < 60_000) return '刚刚';
+  if (diff < 60_000) return t('justNow');
   if (diff < 3_600_000) return `${Math.floor(diff / 60_000)}m`;
   if (diff < 86_400_000) return `${Math.floor(diff / 3_600_000)}h`;
   if (diff < 30 * 86_400_000) return `${Math.floor(diff / 86_400_000)}d`;
@@ -188,6 +190,7 @@ interface RowProps {
 }
 
 function Row({ tab, ts, active, focused, windowHue, showHost, onActivate, onDuplicate, onMove, onClose }: RowProps): JSX.Element {
+  const t = useI18n();
   const stale = freshness(ts) < 0.05 ? '1' : '0';
   return (
     <div
@@ -214,24 +217,24 @@ function Row({ tab, ts, active, focused, windowHue, showHost, onActivate, onDupl
       }}
     >
       <img className="powerful-row__fav" src={faviconUrl(tab.url)} alt="" />
-      <span className="powerful-row__title" title={tab.url}>{active && <span className="powerful-row__window" title={`窗口 ${tab.windowId} 当前标签${focused ? '（当前窗口）' : ''}`}>W{tab.windowId}</span>}{tab.title || tab.url}</span>
+      <span className="powerful-row__title" title={tab.url}>{active && <span className="powerful-row__window" title={`${t('activeWindow', { id: tab.windowId })}${focused ? t('currentWindow') : ''}`}>W{tab.windowId}</span>}{tab.title || tab.url}</span>
       {showHost && <span className="powerful-row__host">{safeHostname(tab.url)}</span>}
       <div className="powerful-row__meta">
-      <span className="powerful-row__time">{formatAgo(ts)}</span>
+      <span className="powerful-row__time">{formatAgo(ts, t)}</span>
       <div className="powerful-row__actions">
-      <button className="powerful-row__close powerful-row__move" aria-label="移动到其他窗口" title="移动到其他窗口"
+      <button className="powerful-row__close powerful-row__move" aria-label={t('moveTab')} title={t('moveTab')}
         onClick={(event) => { event.stopPropagation(); onMove(); }}>
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
           <path d="M13 4H5a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h13a2 2 0 0 0 2-2v-8M13 3h8v8M21 3l-11 11" />
         </svg>
       </button>
-      <button className="powerful-row__close powerful-row__duplicate" aria-label="复制此标签页" title="复制此标签页" onClick={(e) => { e.stopPropagation(); onDuplicate(); }}>
+      <button className="powerful-row__close powerful-row__duplicate" aria-label={t('duplicateTab')} title={t('duplicateTab')} onClick={(e) => { e.stopPropagation(); onDuplicate(); }}>
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden="true"><rect x="8" y="8" width="12" height="13" rx="2" /><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h3" /></svg>
       </button>
       <button
         className="powerful-row__close"
-        aria-label="关闭此标签页"
-        title="关闭此标签页 (Backspace)"
+        aria-label={t('closeTab')}
+        title={t('closeTabTitle')}
         onClick={(e) => {
           e.stopPropagation();
           onClose();
@@ -266,6 +269,7 @@ export default function CardGrid({
   onClose,
   onCloseGroup,
 }: Props): JSX.Element {
+  const t = useI18n();
   const [recentAccessed, setRecentAccessed] = useState(lastAccessed);
   // Compare timestamp values, not refreshed object identities. Activation
   // highlighting and ordinary tab refreshes must not restart this debounce.
@@ -315,15 +319,15 @@ export default function CardGrid({
   const totalTabs = groups.reduce((count, group) => count + group.tabs.length, 0);
 
   if (searchQuery.trim() && totalTabs === 0) {
-    return <div className="powerful-empty"><span className="powerful-empty__title">没有匹配的标签</span><span className="powerful-empty__hint">试试其他关键词，或清空搜索</span></div>;
+    return <div className="powerful-empty"><span className="powerful-empty__title">{t('noMatches')}</span><span className="powerful-empty__hint">{t('trySearch')}</span></div>;
   }
 
   if (tabs.length === 0) {
     return (
       <div className="powerful-empty">
         <ZzzDoodle />
-        <span className="powerful-empty__title">浏览器很安静</span>
-        <span className="powerful-empty__hint">什么都没打开 — 这一刻属于你 ✿</span>
+        <span className="powerful-empty__title">{t('quiet')}</span>
+        <span className="powerful-empty__hint">{t('nothingOpen')}</span>
       </div>
     );
   }
@@ -332,18 +336,18 @@ export default function CardGrid({
 
   const recentLabel = (() => {
     const top = recent[0];
-    if (!top) return '时间倒序';
+    if (!top) return t('newestFirst');
     const ago = Date.now() - (lastAccessed[top.id] ?? 0);
-    if (ago < 60_000) return '你刚刚还在看';
-    if (ago < 600_000) return '不久前路过';
-    return '最近的足迹';
+    if (ago < 60_000) return t('justVisited');
+    if (ago < 600_000) return t('visitedEarlier');
+    return t('recentActivity');
   })();
 
   return (
     <div className="powerful-list">
       <div className="powerful-list__summary">
         <span>
-          {totalTabs} tabs · {totalDomains} groups
+          {t('summary', { tabs: totalTabs, groups: totalDomains })}
         </span>
         <Squiggle />
       </div>
@@ -367,7 +371,7 @@ export default function CardGrid({
           >
             <ChevronDown />
             <Sparkle className="powerful-section__sparkle" />
-            <span className="powerful-section__title">Recent</span>
+            <span className="powerful-section__title">{t('recent')}</span>
             <span className="powerful-section__count">{recent.length}</span>
             <span className="powerful-section__time">{recentLabel}</span>
           </div>
@@ -425,7 +429,7 @@ export default function CardGrid({
               <img className="powerful-section__fav" src={faviconUrl(top?.url ?? '')} alt="" />
               <span className="powerful-section__title">{g.label}</span>
               <span className="powerful-section__count">{g.tabs.length}</span>
-              <span className="powerful-section__time">{formatAgo(g.hottest)}</span>
+              <span className="powerful-section__time">{formatAgo(g.hottest, t)}</span>
               <div className="powerful-section__actions">
                 <button
                   className="powerful-section__action"
@@ -434,7 +438,7 @@ export default function CardGrid({
                     onCloseGroup(g.hostname, g.tabs.map((t) => t.id));
                   }}
                 >
-                  关闭整组
+                  {t('closeGroup')}
                 </button>
               </div>
             </div>

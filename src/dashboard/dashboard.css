@@ -744,6 +744,12 @@ html, body, #root {
 .powerful-body--side .powerful-list__summary { padding: 0 10px 6px; }
 .powerful-body--side .powerful-toolbar__hint { max-width: 70px; }
 
+@media (max-width: 420px) {
+  .powerful-toolbar { flex-wrap: wrap; }
+  .powerful-toolbar .powerful-cat { display: none; }
+  .powerful-toolbar .powerful-toolbar__hint { order: 3; flex-basis: 100%; max-width: none; }
+}
+
 /* ============================================================
    Reduced motion.
    ============================================================ */
