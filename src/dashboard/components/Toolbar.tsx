@@ -15,81 +15,38 @@ interface Props {
   onOrganize: () => void;
 }
 
-/** A small hand-drawn cat sleeping on the toolbar's right edge. */
-function CatDoodle(): JSX.Element {
+/** A cheerful floppy-eared puppy resting on the toolbar edge. */
+function DogDoodle(): JSX.Element {
   return (
-    <svg
-      className="powerful-cat"
-      width="56"
-      height="34"
-      viewBox="0 0 64 38"
-      aria-hidden
-    >
-      {/* Body — a soft loaf */}
-      <path
-        d="M6 26 C 8 14, 22 8, 32 8 C 44 8, 56 14, 58 26 L 58 30 L 6 30 Z"
-        fill="var(--cat-fill, #f5d6c0)"
-        stroke="var(--cat-line, #5a3a2a)"
-        strokeWidth="1.4"
-        strokeLinejoin="round"
-      />
-      {/* Left ear */}
-      <path
-        d="M11 18 L 8 8 L 18 14 Z"
-        fill="var(--cat-fill, #f5d6c0)"
-        stroke="var(--cat-line, #5a3a2a)"
-        strokeWidth="1.4"
-        strokeLinejoin="round"
-      />
-      {/* Right ear */}
-      <path
-        d="M46 14 L 56 8 L 53 18 Z"
-        fill="var(--cat-fill, #f5d6c0)"
-        stroke="var(--cat-line, #5a3a2a)"
-        strokeWidth="1.4"
-        strokeLinejoin="round"
-      />
-      {/* Tail flicks behind body */}
-      <path
-        d="M58 28 Q 64 24, 62 18 Q 60 14, 56 16"
-        fill="none"
-        stroke="var(--cat-line, #5a3a2a)"
-        strokeWidth="1.4"
-        strokeLinecap="round"
-      />
-      {/* Sleepy eyes (>‿<) */}
-      <path
-        d="M22 22 q 2 -2, 4 0 M38 22 q 2 -2, 4 0"
-        fill="none"
-        stroke="var(--cat-line, #5a3a2a)"
-        strokeWidth="1.4"
-        strokeLinecap="round"
-      />
-      {/* Tiny smile + whiskers */}
-      <path
-        d="M30 26 q 2 1.5, 4 0"
-        fill="none"
-        stroke="var(--cat-line, #5a3a2a)"
-        strokeWidth="1.2"
-        strokeLinecap="round"
-      />
-      <path
-        d="M16 24 L 21 25 M 16 26 L 21 26 M 48 24 L 43 25 M 48 26 L 43 26"
-        stroke="var(--cat-line, #5a3a2a)"
-        strokeWidth="0.8"
-        strokeLinecap="round"
-        opacity="0.55"
-      />
-      {/* Z Z — sleepy */}
-      <path
-        d="M48 6 L 52 6 L 48 10 L 52 10"
-        fill="none"
-        stroke="var(--cat-line, #5a3a2a)"
-        strokeWidth="1.1"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        opacity="0.7"
-      />
+    <svg className="powerful-dog" width="56" height="34" viewBox="0 0 64 38" aria-hidden>
+      {/* Curled tail and a round, soft body. */}
+      <path d="M52 25 Q63 21 59 12" fill="none" stroke="var(--dog-ear, #bd865f)" strokeWidth="4" strokeLinecap="round" />
+      <ellipse cx="44" cy="26" rx="14" ry="8" fill="var(--dog-fill, #f5d6c0)" stroke="var(--dog-line, #5a3a2a)" strokeWidth="1.2" />
+      <ellipse cx="46" cy="32" rx="6" ry="3" fill="var(--dog-fill, #f5d6c0)" stroke="var(--dog-line, #5a3a2a)" strokeWidth="1.2" />
+      {/* Oversized head and floppy caramel ears. */}
+      <path d="M12 17 C12 9 17 5 25 5 C34 5 39 11 39 19 C39 28 33 32 25 32 C17 32 12 27 12 17Z"
+        fill="var(--dog-fill, #f5d6c0)" stroke="var(--dog-line, #5a3a2a)" strokeWidth="1.2" />
+      <path d="M15 9 C9 8 5 15 7 23 C8 29 12 30 15 25 L18 12Z"
+        fill="var(--dog-ear, #bd865f)" stroke="var(--dog-line, #5a3a2a)" strokeWidth="1.2" strokeLinejoin="round" />
+      <path d="M35 9 C41 9 45 17 43 24 C42 29 38 29 35 24 L33 12Z"
+        fill="var(--dog-ear, #bd865f)" stroke="var(--dog-line, #5a3a2a)" strokeWidth="1.2" strokeLinejoin="round" />
+      {/* Bright eyes, soft muzzle, rosy cheeks, and a tiny tongue. */}
+      <circle cx="21" cy="18" r="2.4" fill="var(--dog-line, #5a3a2a)" />
+      <circle cx="31" cy="18" r="2.4" fill="var(--dog-line, #5a3a2a)" />
+      <circle cx="20.3" cy="17.3" r="0.8" fill="#fff" />
+      <circle cx="30.3" cy="17.3" r="0.8" fill="#fff" />
+      <ellipse cx="17" cy="23" rx="2" ry="1.2" fill="#ed9c9b" opacity="0.7" />
+      <ellipse cx="35" cy="23" rx="2" ry="1.2" fill="#ed9c9b" opacity="0.7" />
+      <ellipse cx="26" cy="24" rx="6.5" ry="4" fill="#fff3e7" />
+      <path d="M23.6 21.5 Q26 20.3 28.4 21.5 Q28 24 26 24 Q24 24 23.6 21.5Z" fill="var(--dog-line, #5a3a2a)" />
+      <path d="M26 24 V25 M22 25 Q24 28 26 25 Q28 28 30 25"
+        fill="none" stroke="var(--dog-line, #5a3a2a)" strokeWidth="1" strokeLinecap="round" />
+      <path d="M25.7 26 Q29 25.7 29 28 Q28.8 30.2 27.3 30 Q25.7 29.8 25.7 26Z"
+        fill="#ee9da9" stroke="#bf7081" strokeWidth="0.6" />
+      {/* Little paws over the edge. */}
+      <ellipse cx="17" cy="32" rx="5" ry="3" fill="var(--dog-fill, #f5d6c0)" stroke="var(--dog-line, #5a3a2a)" strokeWidth="1.1" />
+      <ellipse cx="31" cy="32" rx="5" ry="3" fill="var(--dog-fill, #f5d6c0)" stroke="var(--dog-line, #5a3a2a)" strokeWidth="1.1" />
+      <path d="M16 32 V33 M18 32 V33 M30 32 V33 M32 32 V33" stroke="var(--dog-line, #5a3a2a)" strokeWidth="0.7" strokeLinecap="round" opacity="0.6" />
     </svg>
   );
 }
@@ -215,7 +172,7 @@ export default function Toolbar(props: Props): JSX.Element {
         </span>
       )}
 
-      <CatDoodle />
+      <DogDoodle />
 
       <div className="powerful-toolbar__group powerful-toolbar__group--right">
         <button

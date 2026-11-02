@@ -77,4 +77,4 @@ Productivity
 
 Tab manager · Tab organizer · Deduplicate · Side panel · Search
 
-The current language work is Unreleased. Use this updated listing when uploading a build that includes these capabilities; do not advertise unreleased features against an older package.
+This listing matches the prepared **0.1.11** package. Save it as the English primary listing when uploading that package; do not advertise these features against an older build.

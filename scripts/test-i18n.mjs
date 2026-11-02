@@ -180,6 +180,8 @@ test('deduplicate buttons are icon-only with localized hover and accessible labe
     assert.ok(button, 'Accessible deduplicate button exists');
     assert.ok(button[0].includes(t('dedupeTitle')));
     assert.ok(button[1].includes('<svg') && !button[1].includes(t('dedupe')));
+    assert.ok(html.includes('class="powerful-dog" width="56" height="34"'), 'Compact puppy decoration is retained');
+    assert.ok(!html.includes('class="powerful-cat"'));
   }
   const popup = readFileSync(resolve(root, 'src/popup/Popup.tsx'), 'utf8');
   assert.ok(popup.includes("aria-label={t('dedupe')}"));

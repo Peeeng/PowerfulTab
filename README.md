@@ -207,7 +207,7 @@ Generate a release ZIP with `npm run release`; output: `release/dist.zip`.
 
 After editing source, run `npm run build`, reload the extension in Chrome, and close / reopen existing side panels or tab-manager pages. Reloading an old extracted ZIP does not load this repository's new `dist/` code.
 
-Normal builds do not update `release/dist.zip`. Regenerate it only when preparing a release. Current language work remains Unreleased until a new version is prepared; the previous release ZIP is not replaced by a normal build.
+Normal builds do not update `release/dist.zip`. Regenerate it with `npm run release` when preparing a release. The current prepared version is **0.1.11**, including language selection, icon-only deduplication, and the puppy decoration; see [release notes](release/10-v0.1.11.md). Prepared does not mean submitted or published to the store.
 
 ## Development
 
@@ -275,10 +275,10 @@ The policy is in [docs/privacy.md](docs/privacy.md). No separate server or domai
 
 This is an intended URL, not proof of deployment. Update the policy when behavior changes. Contact: `Peeeng520@gmail.com`.
 
-## 🐱 Design
+## 🐶 Design
 
 - Blue-purple browser tabs and a lightning bolt. Icon source: `src/assets/icons/icon.svg`. Render sizes with `node scripts/render-icons.mjs`; `npm run promo` creates the matching store icon and English artwork; release builds regenerate icons.
-- Hand-drawn cat and subtle visual motion.
+- A cheerful floppy-eared puppy with bright eyes, rosy cheeks, a tiny tongue, and subtle hover motion. Its compact size and light / dark colors match the toolbar.
 - Glowing Organize button with GSAP 3D hover parallax.
 - Light / dark themes, colored window stripes, and active highlights.
 - Compact rows with relative times such as Just now / 5m / 2h / 3d.

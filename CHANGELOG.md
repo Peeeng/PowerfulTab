@@ -6,7 +6,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 New work is recorded under Unreleased, then moved to a numbered version when selected. "Release materials prepared" does not mean uploaded, submitted, or approved. Older dates and capabilities below are preserved from existing project records, not newly verified publication claims.
 
-## [Unreleased] - Not published
+## [0.1.11] - Release materials prepared
 
 ### Added
 
@@ -15,10 +15,11 @@ New work is recorded under Unreleased, then moved to a numbered version when sel
 
 ### Changed
 
+- Replaced the toolbar cat with a floppy-eared puppy: bright eyes, rosy cheeks, tiny tongue, and paws over the edge. Retains the existing footprint, light/dark colors, and reduced-motion-safe hover effect.
 - Deduplicate is icon-only in the toolbar and fallback popup in both languages; localized hover hints and accessible labels are retained.
 - English manifest description / action title, entry-page language / titles, README, release materials, permission explanations, privacy policy, and generated branding captions.
 - Language selection previews settings labels; Save applies across views, while Cancel discards. Tab titles, URLs, group names, search queries / history, collapse state, and ordering / search-clear timers are preserved.
-- Narrow toolbars wrap status text to fit English controls; the decorative cat remains visible. Deduplicate removes its text only, preserving its icon and hover hint.
+- Narrow toolbars wrap status text to fit English controls; the decorative puppy remains visible. Deduplicate removes its text only, preserving its icon and hover hint.
 - Added local language-storage, translation-coverage, UI-switching, and timer regression checks.
 
 ## [0.1.10] - Release materials prepared
