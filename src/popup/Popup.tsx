@@ -74,7 +74,7 @@ export default function Popup(): JSX.Element {
       </section>
       <section className="powerful-popup__actions">
         <button disabled={busy} onClick={() => void organize()} className="primary" title={t('organizeTitle')}>{t('organize')}</button>
-        <button disabled={busy} onClick={() => void dedupe()} title={t('dedupeTitle')} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}><DedupeIcon />{t('dedupe')}</button>
+        <button disabled={busy} onClick={() => void dedupe()} title={t('dedupeTitle')} aria-label={t('dedupe')} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}><DedupeIcon /></button>
         <button disabled={busy} onClick={() => setSettingsOpen(true)} aria-label={t('settings')} title={t('settings')}><SettingsIcon /></button>
       </section>
       {settingsOpen && <SettingsDialog settings={settings} onSave={async (next) => { setSettingsState(await setSettings(next)); }} onClose={() => setSettingsOpen(false)} />}

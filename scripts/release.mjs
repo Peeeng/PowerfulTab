@@ -40,11 +40,11 @@ run('npm run build');
 
 // 4. zip
 if (!existsSync(DIST)) {
-  console.error('❌ dist/ 不存在，build 失败');
+  console.error('❌ dist/ is missing; build failed');
   process.exit(1);
 }
 run(`cd "${DIST}" && zip -qr "${ZIP_PATH}" .`);
 
-console.log(`\n✅ 完成：${ZIP_PATH}`);
-console.log(`   版本：${version}`);
-console.log(`   下一步：上传到 https://chrome.google.com/webstore/devconsole\n`);
+console.log(`\n✅ Package ready: ${ZIP_PATH}`);
+console.log(`   Version: ${version}`);
+console.log('   Next: upload to https://chrome.google.com/webstore/devconsole\n');

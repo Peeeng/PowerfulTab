@@ -219,13 +219,13 @@ export default function Toolbar(props: Props): JSX.Element {
 
       <div className="powerful-toolbar__group powerful-toolbar__group--right">
         <button
-          className="powerful-toolbar__icon-btn powerful-toolbar__icon-btn--wide"
+          className="powerful-toolbar__icon-btn"
           onClick={onDedupe}
           disabled={busy}
           title={t('dedupeTitle')}
+          aria-label={t('dedupe')}
         >
           <DedupeIcon />
-          {t('dedupe')}
         </button>
         <button className="powerful-toolbar__icon-btn" onClick={onSettings} disabled={busy} aria-label={t('settings')} title={t('settings')}><SettingsIcon /></button>
         <button

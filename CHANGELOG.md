@@ -15,9 +15,10 @@ New work is recorded under Unreleased, then moved to a numbered version when sel
 
 ### Changed
 
+- Deduplicate is icon-only in the toolbar and fallback popup in both languages; localized hover hints and accessible labels are retained.
 - English manifest description / action title, entry-page language / titles, README, release materials, permission explanations, privacy policy, and generated branding captions.
 - Language selection previews settings labels; Save applies across views, while Cancel discards. Tab titles, URLs, group names, search queries / history, collapse state, and ordering / search-clear timers are preserved.
-- Narrow toolbars wrap status text and hide the decorative cat when needed to fit English controls.
+- Narrow toolbars wrap status text to fit English controls; the decorative cat remains visible. Deduplicate removes its text only, preserving its icon and hover hint.
 - Added local language-storage, translation-coverage, UI-switching, and timer regression checks.
 
 ## [0.1.10] - Release materials prepared

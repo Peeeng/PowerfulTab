@@ -8,5 +8,6 @@ Status: implemented in source / development build, not assigned a new release ve
 - Settings labels preview the selected language; Save applies it across views, while Cancel / outside dismissal discards it.
 - Switched manifest descriptions, page titles, README, release documentation, permissions, privacy policy, and generated branding captions to English.
 - No new permissions, remote translation calls, or uploaded data. Both dictionaries are bundled.
+- Deduplicate is icon-only in both languages, retaining localized hover hints and accessible labels in the toolbar and fallback popup.
 
 Before store submission: choose a new version, synchronize package / manifest / CHANGELOG / release notes, run `npm run release`, capture privacy-safe English UI screenshots if updating them, and save the English listing in the developer dashboard.

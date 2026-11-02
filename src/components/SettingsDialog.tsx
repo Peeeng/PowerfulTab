@@ -57,7 +57,7 @@ export default function SettingsDialog({ settings, onSave, onClose }: Props): JS
   }, []);
 
   return (
-    <dialog ref={dialogRef} className="powerful-settings" aria-labelledby="settings-title" onCancel={onClose}
+    <dialog ref={dialogRef} className="powerful-settings" lang={draft.language} aria-labelledby="settings-title" onCancel={onClose}
       onClick={(e) => {
         if (e.target !== e.currentTarget || saving) return;
         const bounds = e.currentTarget.getBoundingClientRect();

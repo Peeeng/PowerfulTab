@@ -90,7 +90,7 @@ These lists change grouping, not deduplication or URL protection. Whitelisted pa
 
 ### Deduplicate
 
-The overlapping-page toolbar icon performs exact URL deduplication. The **entire URL string** must match, including:
+The overlapping-page toolbar icon performs exact URL deduplication. The button is icon-only in both languages; hover for the localized explanation. The **entire URL string** must match, including:
 
 - Hostname, path, and trailing slash.
 - Every query parameter, value, and parameter order.
@@ -216,6 +216,7 @@ npm run dev      # Watch builds
 npm run build    # TypeScript check + production build
 npm run release  # Build and package release/dist.zip
 npm run promo    # Generate English branding artwork
+npm run test:i18n # Language, UI, storage, and search-timer regression checks
 ```
 
 ```text

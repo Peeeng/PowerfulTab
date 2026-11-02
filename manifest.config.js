@@ -15,13 +15,13 @@ export default defineManifest({
     side_panel: {
         default_path: 'sidepanel.html',
     },
-    // 最小权限原则：
-    //   tabs        - 读取标签 URL/title/icon 用于分组/去重/展示
-    //   tabGroups   - 整理时把同域标签合到 Chrome 原生标签组
-    //   sessions    - 撤销关闭功能：恢复刚刚关掉的标签
-    //   storage     - 本地保存白名单、主题、模式偏好（chrome.storage.local，零远端）
-    //   sidePanel   - 在侧边栏渲染 Dashboard
-    //   favicon     - 拉取站点 favicon 给卡片做 16x16 图标
+    // Minimum permissions for local tab management:
+    //   tabs        - Read metadata and perform requested tab actions
+    //   tabGroups   - Manage native Chrome groups
+    //   sessions    - Undo recent manual closing
+    //   storage     - Local settings, language, history, and timestamps
+    //   sidePanel   - Display the dashboard in Chrome's side panel
+    //   favicon     - Display site icons in tab rows
     permissions: ['tabs', 'tabGroups', 'sessions', 'storage', 'favicon', 'sidePanel'],
     icons: {
         '16': 'src/assets/icons/icon-16.png',
