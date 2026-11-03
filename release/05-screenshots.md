@@ -2,9 +2,11 @@
 
 Use **1280×800** or **640×400** real product screenshots, JPEG or 24-bit RGB PNG without alpha. Check the current store dashboard for required counts and additional assets.
 
-Existing files `screenshots/screen-1.png` and `screen-2.png` are 1280×800 RGB PNG; `-1280x800` aliases contain the same images. Originals are in `screenshots/originals/`.
+Current files `screenshots/screen-1.png` through `screen-4.png` are 1280×800, 24-bit RGB PNG without alpha, converted without distortion from the supplied screenshots. Originals are in `screenshots/originals/`. Old `-1280x800` aliases have been removed and are no longer generated.
 
-These are older screenshots, not regenerated English UI captures. They may contain internal or private information. Do not upload them publicly without checking and redacting; ideally replace them with current, safe English captures. Run `node scripts/prepare-store-screenshots.mjs` to convert new originals to the required format.
+Screenshots use plain proportional resizing with no added shadows, rounded corners, or card background. Output dimensions stay 1280×800; any aspect-ratio padding is white. Re-running the script renders from unchanged originals, avoiding repeated downscaling.
+
+These captures show the English UI: tab list, move-window dialog, settings, and pinyin-initial search. They are not privacy-redacted: the settings capture contains internal hostnames, and the browsing captures show account / message information. Do not upload them publicly before reviewing and redacting. Run `node scripts/prepare-store-screenshots.mjs` to reconvert the four originals to the required format.
 
 ## Capture scenarios
 

@@ -95,10 +95,11 @@ test('settings, controls, hints, search, and empty states render in both languag
       const html = renderToStaticMarkup(React.createElement(SettingsDialog, {
         settings: { ...defaultSettings, language, groupMode }, onSave: async () => {}, onClose() {},
       }));
-      assert.ok(html.includes(t('settings')) && html.includes(t('save')) && html.includes(t('languageHint')));
+      assert.ok(html.includes(t('settings')) && html.includes(t('save')));
       assert.ok(html.includes(`>${t(groupMode === 'path' ? 'pathWhitelist' : 'domainWhitelist')}</label>`));
       assert.ok(!html.includes(`>${t(groupMode === 'path' ? 'domainWhitelist' : 'pathWhitelist')}</label>`));
-      assert.equal((html.match(/class="powerful-settings__help-icon"/g) ?? []).length, 9);
+      assert.equal((html.match(/class="powerful-settings__help-icon"/g) ?? []).length, 7);
+      assert.ok(!/default|默认/i.test(html), 'Hints do not repeat default values');
       if (language === 'en') assert.ok(!/\p{Script=Han}/u.test(html.replace('简体中文', '')));
     }
     const search = render(language, React.createElement(TabSearch, { query: 'keep me', onQuery() {}, historyCount: 1, clearTimeoutSeconds: 60 }));
@@ -111,6 +112,20 @@ test('settings, controls, hints, search, and empty states render in both languag
     assert.ok(empty.includes(t('quiet')) && empty.includes(t('nothingOpen')));
     const move = render(language, React.createElement(MoveTabDialog, { tab: { id: 1, title: 'Original title', url: 'https://example.com' }, onMoved() {}, onClose() {} }));
     assert.ok(move.includes(t('moveTab')) && move.includes(t('loadingWindows')) && move.includes('Original title'));
+  }
+});
+
+test('language and theme fields have no hint marker or description association', () => {
+  const SettingsDialog = load('src/components/SettingsDialog.tsx').default;
+  for (const language of ['en', 'zh-CN']) {
+    const html = renderToStaticMarkup(React.createElement(SettingsDialog, {
+      settings: { ...defaultSettings, language }, onSave: async () => {}, onClose() {},
+    }));
+    const selects = [...html.matchAll(/<select[^>]*>/g)].map((match) => match[0]);
+    assert.equal(selects.length, 4);
+    assert.ok(!selects[0].includes('aria-describedby'), 'Language has no description');
+    assert.ok(!selects[3].includes('aria-describedby'), 'Theme has no description');
+    assert.ok(selects[1].includes('aria-describedby') && selects[2].includes('aria-describedby'));
   }
 });
 

@@ -102,7 +102,7 @@ Last-visited timestamps come from activation, creation, and URL-change events, n
 
 ## Settings
 
-Open Settings using the toolbar gear. Labels are bold; input and hint text use normal weight. A 12px "?" sits at each label's upper-right corner. Hover or click to view the hint. The marker cannot take focus, and descriptions are associated with their input controls for screen readers.
+Open Settings using the toolbar gear. Labels are bold; input and hint text use normal weight. Settings hints use a 12px "?" at the label's upper-right corner, except Language and Theme, which have no descriptions. Hover or click to view rules; hints do not repeat default values because current values are visible in controls. The marker cannot take focus, and descriptions are associated with their input controls for screen readers.
 
 | Setting | Default | Rule |
 | --- | --- | --- |
@@ -207,7 +207,7 @@ Generate a release ZIP with `npm run release`; output: `release/dist.zip`.
 
 After editing source, run `npm run build`, reload the extension in Chrome, and close / reopen existing side panels or tab-manager pages. Reloading an old extracted ZIP does not load this repository's new `dist/` code.
 
-Normal builds do not update `release/dist.zip`. Regenerate it with `npm run release` when preparing a release. The current prepared version is **0.1.11**, including language selection, icon-only deduplication, and the puppy decoration; see [release notes](release/10-v0.1.11.md). Prepared does not mean submitted or published to the store.
+Normal builds do not update `release/dist.zip`. Regenerate it with `npm run release` when preparing a release. The current prepared version is **0.1.12**, with simplified settings hints; see [release notes](release/11-v0.1.12.md). Screenshot files have since been restored to plain images without decorative card effects; the ZIP is unaffected. Prepared does not mean submitted or published to the store. Screenshot assets still require privacy review before public upload.
 
 ## Development
 

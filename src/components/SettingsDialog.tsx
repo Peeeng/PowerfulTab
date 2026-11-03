@@ -12,7 +12,7 @@ interface Props {
 
 function SettingField({ label, hint, multiline = false, children }: {
   label: string;
-  hint: string;
+  hint?: string;
   multiline?: boolean;
   children: ReactElement<{ id?: string; 'aria-describedby'?: string }>;
 }): JSX.Element {
@@ -26,13 +26,13 @@ function SettingField({ label, hint, multiline = false, children }: {
       }}>
       <span className="powerful-settings__name">
         <label htmlFor={id}>{label}</label>
-        <span className="powerful-settings__help" onMouseEnter={() => setShowHint(true)} onMouseLeave={() => setShowHint(false)}
+        {hint && <span className="powerful-settings__help" onMouseEnter={() => setShowHint(true)} onMouseLeave={() => setShowHint(false)}
           onClick={() => setShowHint(true)}>
           <span className="powerful-settings__help-icon" aria-hidden="true">?</span>
           <span id={hintId} role="tooltip" className="powerful-settings__tooltip" hidden={!showHint}>{hint}</span>
-        </span>
+        </span>}
       </span>
-      {cloneElement(children, { id, 'aria-describedby': hintId })}
+      {cloneElement(children, { id, ...(hint ? { 'aria-describedby': hintId } : {}) })}
     </div>
   );
 }
@@ -82,7 +82,7 @@ export default function SettingsDialog({ settings, onSave, onClose }: Props): JS
         });
       }}>
         <h2 id="settings-title">{t('settings')}</h2>
-        <SettingField label={t('language')} hint={t('languageHint')}>
+        <SettingField label={t('language')}>
           <select value={draft.language} onChange={(e) => setDraft({ ...draft, language: e.target.value as Settings['language'] })}>
             <option value="en">English</option><option value="zh-CN">简体中文</option>
           </select>
@@ -116,7 +116,7 @@ export default function SettingsDialog({ settings, onSave, onClose }: Props): JS
         <SettingField label={t('searchTimeout')} hint={t('searchTimeoutHint')}>
           <input type="number" min="0" step="1" required value={searchTimeout} onChange={(e) => setSearchTimeout(e.target.value)} />
         </SettingField>
-        <SettingField label={t('theme')} hint={t('themeHint')}>
+        <SettingField label={t('theme')}>
           <select value={draft.theme} onChange={(e) => setDraft({ ...draft, theme: e.target.value as Settings['theme'] })}>
             <option value="light">{t('light')}</option><option value="dark">{t('dark')}</option>
           </select>

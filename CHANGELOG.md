@@ -6,6 +6,20 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 New work is recorded under Unreleased, then moved to a numbered version when selected. "Release materials prepared" does not mean uploaded, submitted, or approved. Older dates and capabilities below are preserved from existing project records, not newly verified publication claims.
 
+## [Unreleased] - Not published
+
+### Changed
+
+- Restored the four screenshots to plain proportional conversions from originals; removed added card framing, shadows, rounded corners, and decorative background. Dimensions remain 1280×800, 24-bit RGB PNG without alpha.
+
+## [0.1.12] - Release materials prepared
+
+### Changed
+
+- Styled the four screenshots as floating window cards with rounded corners, stronger two-layer shadows, and a pale background. Output remains 1280×800 RGB PNG; originals are preserved and screenshot content is proportionally inset without distortion.
+- Removed default-value wording from English / Chinese settings hints; current values remain visible in controls. Language and Theme no longer show hint markers or descriptions. Stored values and behavior are unchanged.
+- Replaced the two previous screenshots with four supplied English UI captures, retaining originals and converting to 1280×800 24-bit RGB PNG. Removed redundant old size-suffixed files and stopped regenerating aliases. Captures still require privacy review before public upload.
+
 ## [0.1.11] - Release materials prepared
 
 ### Added
