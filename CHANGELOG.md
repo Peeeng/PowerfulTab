@@ -10,6 +10,8 @@ New work is recorded under Unreleased, then moved to a numbered version when sel
 
 ### Changed
 
+- Debounced title, favicon, loading-status, and other presentation-driven tab refreshes by 500ms. URL, pinning, and native group changes still refresh immediately.
+- After tab deletion, removed rows and counts update immediately while remaining tabs keep their displayed group membership and group order until 3s after the last deletion. Ordinary refreshes, activation, and search do not reset this delay; structural additions, navigation, moves, grouping-rule changes, and explicit Organize still apply immediately.
 - Move now skips the window picker when only one eligible destination exists (including the usual two-window case); multiple destinations retain the picker. Destination mode is rechecked and its active tab remains selected.
 - Moved toolbar status text to a separate full-width row below the puppy and controls, preventing grouping results from pushing action buttons down. Long messages wrap instead of truncating.
 - Removed the puppy's downward offset in both dashboard and sidebar toolbars so it aligns vertically with the controls and status text.

@@ -3,6 +3,7 @@ import type { LastAccessedMap, TabInfo } from '../../core/types';
 import { applyGroupingRules, groupByDomain, safeHostname } from '../../core/grouping';
 import { matchesTabSearch } from '../../core/search';
 import { useStableTabOrder } from './useStableTabOrder';
+import { useDeletionDelayedGroups } from './useDeletionDelayedGroups';
 import { useI18n } from '../../components/I18nProvider';
 import type { Translator } from '../../core/i18n';
 
@@ -290,9 +291,14 @@ export default function CardGrid({
     windows.forEach((id) => colors.set(id, hues[((id % hues.length) + hues.length) % hues.length]!));
     return colors;
   }, [tabs]);
-  const plannedGroups = useMemo(() => applyGroupingRules(
+  const desiredGroups = useMemo(() => applyGroupingRules(
     groupByDomain(tabs, groupByFirstPath, pathDomainWhitelist, domainPathWhitelist), minGroupTabs, maxGroupCount,
   ), [tabs, groupByFirstPath, pathDomainWhitelist, domainPathWhitelist, minGroupTabs, maxGroupCount]);
+  const groupingRulesKey = JSON.stringify([
+    groupByFirstPath, [...pathDomainWhitelist].sort(), [...domainPathWhitelist].sort(),
+    minGroupTabs, maxGroupCount, orderRevision,
+  ]);
+  const plannedGroups = useDeletionDelayedGroups(tabs, desiredGroups, groupingRulesKey);
   const groups = useMemo(() => {
     // 先计算完整分组再筛选，避免搜索让原组因不足最少标签数而归入 other。
     const displayGroups = plannedGroups

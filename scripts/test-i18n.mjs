@@ -263,6 +263,154 @@ test('moving revalidates the destination and preserves its active tab', async ()
   assert.equal(calls.length, 2);
 });
 
+function fakeClock() {
+  let now = 0, nextId = 1;
+  const timers = new Map();
+  return {
+    globals: {
+      setTimeout(fn, delay) { const id = nextId++; timers.set(id, { at: now + delay, fn }); return id; },
+      clearTimeout(id) { timers.delete(id); },
+    },
+    advance(ms, after = () => {}) {
+      const end = now + ms;
+      while (true) {
+        const next = [...timers].filter(([, timer]) => timer.at <= end).sort((a, b) => a[1].at - b[1].at)[0];
+        if (!next) break;
+        now = next[1].at;
+        timers.delete(next[0]); next[1].fn(); after();
+      }
+      now = end;
+    },
+    get size() { return timers.size; },
+  };
+}
+
+test('presentation updates debounce 500ms while structural updates remain immediate', () => {
+  const clock = fakeClock();
+  let refreshes = 0;
+  const { createTabUpdateRefresh } = loader({}, clock.globals)('src/dashboard/tab-update-refresh.ts');
+  const handler = createTabUpdateRefresh(() => refreshes++);
+  handler.onUpdated(1, { title: 'Title' });
+  clock.advance(300);
+  handler.onUpdated(2, { favIconUrl: 'icon.png', status: 'loading' });
+  clock.advance(499); assert.equal(refreshes, 0);
+  clock.advance(1); assert.equal(refreshes, 1);
+  for (const change of [{ url: 'https://example.com/' }, { pinned: false }, { groupId: -1 }]) {
+    handler.onUpdated(1, { status: 'complete' });
+    handler.onUpdated(1, change);
+    assert.equal(clock.size, 0, 'Immediate refresh cancels the pending presentation query');
+  }
+  assert.equal(refreshes, 4);
+  handler.onUpdated(1, { title: 'Closed view' });
+  handler.dispose(); clock.advance(1000);
+  assert.equal(refreshes, 4, 'Unmount cancels outstanding queries');
+});
+
+function groupingHarness(initialTabs, initialRules = 'default') {
+  const clock = fakeClock();
+  let slots = [], index = 0, dirty = false, pending = [], output;
+  let tabs = initialTabs, rules = initialRules;
+  const react = {
+    useState(initial) {
+      const i = index++; slots[i] ??= { value: typeof initial === 'function' ? initial() : initial };
+      return [slots[i].value, (value) => {
+        slots[i].value = typeof value === 'function' ? value(slots[i].value) : value;
+        dirty = true;
+      }];
+    },
+    useRef(initial) { const i = index++; slots[i] ??= { current: initial }; return slots[i]; },
+    useEffect(fn, deps) {
+      const i = index++, old = slots[i];
+      if (!old || deps.some((value, j) => !Object.is(value, old.deps[j]))) {
+        pending.push(() => { old?.cleanup?.(); slots[i] = { deps, cleanup: fn() }; });
+      }
+    },
+  };
+  const { useDeletionDelayedGroups } = loader({ react }, clock.globals)('src/dashboard/components/useDeletionDelayedGroups.ts');
+  const { groupByDomain, applyGroupingRules } = load('src/core/grouping.ts');
+  const render = () => {
+    do {
+      dirty = false; index = 0;
+      output = useDeletionDelayedGroups(tabs, applyGroupingRules(groupByDomain(tabs), 3, 15), rules);
+      const effects = pending; pending = []; effects.forEach((fn) => fn());
+    } while (dirty);
+  };
+  render();
+  return {
+    update(nextTabs, nextRules = rules) { tabs = nextTabs; rules = nextRules; render(); },
+    advance(ms) { clock.advance(ms, () => { if (dirty) render(); }); },
+    get groups() { return JSON.parse(JSON.stringify(output)); },
+    dispose() { slots.forEach((slot) => slot.cleanup?.()); },
+    get timers() { return clock.size; },
+  };
+}
+
+const groupingTabs = () => [...Array(8)].map((_, i) => ({
+  id: i + 1, windowId: 1, url: `https://${i < 4 ? 'a' : 'b'}.example.com/${i}`,
+  title: `Tab ${i + 1}`, groupId: -1, index: i, pinned: false, active: false,
+}));
+
+test('deletion removes rows and counts immediately but holds grouping for 3s', () => {
+  const initial = groupingTabs();
+  const h = groupingHarness(initial);
+  assert.deepEqual(h.groups.map((group) => group.key), ['a.example.com', 'b.example.com']);
+  const remaining = initial.filter((tab) => tab.id !== 1 && tab.id !== 2);
+  h.update(remaining);
+  assert.deepEqual(h.groups.map((group) => group.key), ['a.example.com', 'b.example.com']);
+  assert.equal(h.groups[0].tabs.length, 2);
+  assert.ok(!h.groups.flatMap((group) => group.tabs).some((tab) => tab.id === 1 || tab.id === 2));
+  h.advance(1000);
+  const refreshed = remaining.map((tab) => ({ ...tab, title: 'New title', active: true, favIconUrl: 'new.png' }));
+  h.update(refreshed); // Also models timer-driven refresh, activation, and search rerenders.
+  assert.equal(h.groups[0].tabs[0].title, 'New title');
+  h.advance(1999);
+  assert.deepEqual(h.groups.map((group) => group.key), ['a.example.com', 'b.example.com']);
+  h.advance(1);
+  assert.deepEqual(h.groups.map((group) => group.key), ['b.example.com', '__other__']);
+  h.dispose();
+});
+
+test('successive deletions restart the grouping delay without retaining closed rows', () => {
+  const initial = groupingTabs();
+  const h = groupingHarness(initial);
+  h.update(initial.filter((tab) => tab.id !== 1));
+  h.advance(2000);
+  h.update(initial.filter((tab) => tab.id !== 1 && tab.id !== 2));
+  h.advance(2999);
+  assert.deepEqual(h.groups.map((group) => group.key), ['a.example.com', 'b.example.com']);
+  h.advance(1);
+  assert.deepEqual(h.groups.map((group) => group.key), ['b.example.com', '__other__']);
+  h.dispose(); assert.equal(h.timers, 0);
+});
+
+test('additions, navigation, moves, and explicit grouping changes bypass deletion delay', () => {
+  const initial = groupingTabs();
+  const remaining = initial.filter((tab) => tab.id !== 1 && tab.id !== 2);
+  const cases = [
+    [remaining.concat({ ...initial[0], id: 9 }), 'default'],
+    [remaining.map((tab) => tab.id === 3 ? { ...tab, url: 'https://c.example.com/' } : tab), 'default'],
+    [remaining.map((tab) => tab.id === 3 ? { ...tab, windowId: 2 } : tab), 'default'],
+    [remaining, 'changed-rules-or-organize'],
+  ];
+  for (const [next, rules] of cases) {
+    const h = groupingHarness(initial);
+    h.update(remaining); h.advance(1000);
+    h.update(next, rules);
+    const { groupByDomain, applyGroupingRules } = load('src/core/grouping.ts');
+    const expected = applyGroupingRules(groupByDomain(next), 3, 15);
+    assert.deepEqual(h.groups.map((group) => [group.key, group.tabs.map((tab) => tab.id)]),
+      Array.from(expected, (group) => [group.key, Array.from(group.tabs, (tab) => tab.id)]));
+    assert.equal(h.timers, 0);
+    h.dispose();
+  }
+});
+
+test('deleting every tab leaves no stale groups and cancels timers on unmount', () => {
+  const h = groupingHarness(groupingTabs());
+  h.update([]); assert.deepEqual(h.groups, []);
+  h.dispose(); assert.equal(h.timers, 0);
+});
+
 test('changing language preserves the current query and auto-clear deadline', () => {
   let slots = [], index = 0, dirty = false, pending = [], tree, now = 0, nextId = 1, language = 'en';
   const timers = new Map();

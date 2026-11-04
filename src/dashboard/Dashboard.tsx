@@ -11,6 +11,7 @@ import { getCreatedAtMap, getSettings, setSettings } from '../core/storage';
 import { queryAllTabs } from '../core/tabs';
 import { activateTab } from '../core/activate-tab';
 import { getMoveDestinations, moveTabToWindow } from '../core/move-tab';
+import { createTabUpdateRefresh } from './tab-update-refresh';
 import Toolbar from './components/Toolbar';
 import CardGrid from './components/CardGrid';
 import SettingsDialog from '../components/SettingsDialog';
@@ -98,12 +99,14 @@ export default function Dashboard(): JSX.Element {
   useEffect(() => {
     void chrome.windows.getCurrent().then((window) => { currentWindowId.current = window.id; });
     void refresh();
+    const updateRefresh = createTabUpdateRefresh(() => { void refresh(); });
     const handler = (): void => {
+      updateRefresh.dispose();
       void refresh();
     };
     chrome.tabs.onCreated.addListener(handler);
     chrome.tabs.onRemoved.addListener(handler);
-    chrome.tabs.onUpdated.addListener(handler);
+    chrome.tabs.onUpdated.addListener(updateRefresh.onUpdated);
     chrome.tabs.onMoved.addListener(handler);
     chrome.tabs.onAttached.addListener(handler);
     chrome.tabs.onDetached.addListener(handler);
@@ -140,7 +143,7 @@ export default function Dashboard(): JSX.Element {
     return () => {
       chrome.tabs.onCreated.removeListener(handler);
       chrome.tabs.onRemoved.removeListener(handler);
-      chrome.tabs.onUpdated.removeListener(handler);
+      chrome.tabs.onUpdated.removeListener(updateRefresh.onUpdated);
       chrome.tabs.onMoved.removeListener(handler);
       chrome.tabs.onAttached.removeListener(handler);
       chrome.tabs.onDetached.removeListener(handler);
@@ -148,6 +151,7 @@ export default function Dashboard(): JSX.Element {
       chrome.windows.onFocusChanged.removeListener(onWindowFocus);
       chrome.storage.onChanged.removeListener(onStorageChange);
       clearInterval(tick);
+      updateRefresh.dispose();
     };
   }, []);
 
