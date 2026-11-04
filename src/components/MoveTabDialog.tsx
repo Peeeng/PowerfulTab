@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import type { TabInfo } from '../core/types';
 import { useI18n } from './I18nProvider';
 import type { LocalizedMessage } from '../core/i18n';
+import { getMoveDestinations, moveTabToWindow } from '../core/move-tab';
 import './settings-dialog.css';
 
 interface Props {
@@ -22,13 +23,9 @@ export default function MoveTabDialog({ tab, onMoved, onClose }: Props): JSX.Ele
     let disposed = false;
     const dialog = dialogRef.current;
     dialog?.showModal();
-    void Promise.all([
-      chrome.tabs.get(tab.id),
-      chrome.windows.getAll({ populate: true, windowTypes: ['normal'] }),
-    ]).then(([source, all]) => {
+    void getMoveDestinations(tab.id).then((destinations) => {
       if (disposed) return;
-      setWindows(all.filter((window) => window.id != null && window.id !== source.windowId
-        && window.incognito === source.incognito).sort((a, b) => a.id! - b.id!));
+      setWindows(destinations);
       setLoading(false);
     }).catch(() => {
       if (!disposed) { setError({ key: 'windowsLoadFailed' }); setLoading(false); }
@@ -40,21 +37,7 @@ export default function MoveTabDialog({ tab, onMoved, onClose }: Props): JSX.Ele
     setMoving(true);
     setError(null);
     try {
-      // Read again because either window may have changed while the picker was open.
-      const [source, destination] = await Promise.all([
-        chrome.tabs.get(tab.id), chrome.windows.get(windowId, { populate: true }),
-      ]);
-      if (source.windowId === windowId) { onClose(); return; }
-      if (destination.type !== 'normal' || destination.incognito !== source.incognito) {
-        setError({ key: 'sameMode' });
-        setMoving(false);
-        return;
-      }
-      const active = destination.tabs?.find((item) => item.active);
-      // Moving across windows removes the tab from its source native group.
-      await chrome.tabs.move(tab.id, { windowId, index: -1 });
-      const moved = await chrome.tabs.get(tab.id);
-      if (moved.active && active?.id != null) await chrome.tabs.update(active.id, { active: true });
+      await moveTabToWindow(tab.id, windowId);
       onMoved();
       onClose();
     } catch (cause) {

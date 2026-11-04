@@ -189,18 +189,78 @@ test('deduplicate buttons are icon-only with localized hover and accessible labe
   for (const language of ['en', 'zh-CN']) {
     const t = createTranslator(language);
     const html = renderToStaticMarkup(React.createElement(I18nProvider, { language }, React.createElement(Toolbar, {
-      busy: false, hint: '', theme: 'light', onTheme() {}, onDedupe() {}, onSettings() {}, onOrganize() {},
+      busy: false, hint: t('grouped', { tabs: 4, groups: 2 }), theme: 'light', onTheme() {}, onDedupe() {}, onSettings() {}, onOrganize() {},
     })));
     const button = html.match(new RegExp(`<button[^>]*aria-label="${t('dedupe')}"[^>]*>([\\s\\S]*?)</button>`));
     assert.ok(button, 'Accessible deduplicate button exists');
     assert.ok(button[0].includes(t('dedupeTitle')));
     assert.ok(button[1].includes('<svg') && !button[1].includes(t('dedupe')));
     assert.ok(html.includes('class="powerful-dog" width="56" height="34"'), 'Compact puppy decoration is retained');
+    assert.ok(html.indexOf('powerful-toolbar__group--right') < html.indexOf('class="powerful-toolbar__hint"'), 'Status occupies its own row after all controls');
+    assert.ok(html.includes('role="status"'));
+    const css = readFileSync(resolve(root, 'src/dashboard/dashboard.css'), 'utf8');
+    assert.match(css, /\.powerful-toolbar__hint\s*\{\s*flex: 0 0 100%;/);
     assert.ok(!html.includes('class="powerful-cat"'));
   }
   const popup = readFileSync(resolve(root, 'src/popup/Popup.tsx'), 'utf8');
   assert.ok(popup.includes("aria-label={t('dedupe')}"));
   assert.ok(!popup.includes("<DedupeIcon />{t('dedupe')}"));
+});
+
+test('organize button keeps its label while busy in both languages', () => {
+  const Toolbar = load('src/dashboard/components/Toolbar.tsx').default;
+  const { I18nProvider } = load('src/components/I18nProvider.tsx');
+  for (const language of ['en', 'zh-CN']) {
+    const t = createTranslator(language);
+    const renderButton = (busy) => {
+      const html = renderToStaticMarkup(React.createElement(I18nProvider, { language }, React.createElement(Toolbar, {
+        busy, hint: busy ? t('organizing') : '', theme: 'light',
+        onTheme() {}, onDedupe() {}, onSettings() {}, onOrganize() {},
+      })));
+      const button = html.match(/<button[^>]*class="powerful-toolbar__primary"[^>]*>([\s\S]*?)<\/button>/);
+      assert.ok(button);
+      assert.ok(button[1].includes(`<span>${t('organize')}</span>`));
+      assert.equal(button[0].includes('disabled=""'), busy);
+      return button[1];
+    };
+    assert.equal(renderButton(false), renderButton(true));
+  }
+});
+
+test('move destinations exclude the source and other browsing modes', async () => {
+  let windows = [{ id: 1, incognito: false }, { id: 2, incognito: false }];
+  const { getMoveDestinations } = loader({}, { chrome: {
+    tabs: { get: async () => ({ windowId: 1, incognito: false }) },
+    windows: { getAll: async () => windows },
+  } })('src/core/move-tab.ts');
+  assert.deepEqual(Array.from(await getMoveDestinations(10), (window) => window.id), [2]);
+  windows = [...windows, { id: 4, incognito: false }, { id: 3, incognito: false }, { id: 5, incognito: true }];
+  assert.deepEqual(Array.from(await getMoveDestinations(10), (window) => window.id), [2, 3, 4]);
+  windows = [{ id: 1, incognito: false }, { id: 5, incognito: true }];
+  assert.equal((await getMoveDestinations(10)).length, 0);
+});
+
+test('moving revalidates the destination and preserves its active tab', async () => {
+  const calls = [];
+  let destination = { type: 'normal', incognito: false, tabs: [{ id: 20, active: true }] };
+  let moved = false;
+  const { moveTabToWindow } = loader({}, { chrome: {
+    tabs: {
+      get: async () => ({ windowId: moved ? 2 : 1, incognito: false, active: moved }),
+      move: async (id, options) => { calls.push([id, options.windowId, options.index]); moved = true; },
+      update: async (id, options) => calls.push([id, options.active]),
+    },
+    windows: { get: async () => destination },
+  } })('src/core/move-tab.ts');
+  await moveTabToWindow(10, 2);
+  assert.deepEqual(calls, [[10, 2, -1], [20, true]]);
+  moved = false;
+  destination = { ...destination, incognito: true };
+  await assert.rejects(moveTabToWindow(10, 2), /same browsing mode/);
+  assert.equal(calls.length, 2);
+  destination = { ...destination, incognito: false, type: 'popup' };
+  await assert.rejects(moveTabToWindow(10, 2), /normal window/);
+  assert.equal(calls.length, 2);
 });
 
 test('changing language preserves the current query and auto-clear deadline', () => {

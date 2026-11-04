@@ -149,7 +149,7 @@ export default function Toolbar(props: Props): JSX.Element {
                 strokeLinejoin="round"
               />
             </svg>
-            <span>{t(busy ? 'organizing' : 'organize')}</span>
+            <span>{t('organize')}</span>
             <svg
               className="powerful-btn__sparkle"
               width="9"
@@ -165,12 +165,6 @@ export default function Toolbar(props: Props): JSX.Element {
           </span>
         </button>
       </div>
-
-      {hint && (
-        <span className="powerful-toolbar__hint" title={hint}>
-          {hint}
-        </span>
-      )}
 
       <DogDoodle />
 
@@ -211,6 +205,11 @@ export default function Toolbar(props: Props): JSX.Element {
           )}
         </button>
       </div>
+      {hint && (
+        <span className="powerful-toolbar__hint" title={hint} role="status">
+          {hint}
+        </span>
+      )}
     </header>
   );
 }

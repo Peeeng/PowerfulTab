@@ -10,6 +10,10 @@ New work is recorded under Unreleased, then moved to a numbered version when sel
 
 ### Changed
 
+- Move now skips the window picker when only one eligible destination exists (including the usual two-window case); multiple destinations retain the picker. Destination mode is rechecked and its active tab remains selected.
+- Moved toolbar status text to a separate full-width row below the puppy and controls, preventing grouping results from pushing action buttons down. Long messages wrap instead of truncating.
+- Removed the puppy's downward offset in both dashboard and sidebar toolbars so it aligns vertically with the controls and status text.
+- Kept the Organize button label unchanged while busy in both languages, preventing label-driven width changes; disabled state and separate status text remain.
 - Restored the four screenshots to plain proportional conversions from originals; removed added card framing, shadows, rounded corners, and decorative background. Dimensions remain 1280×800, 24-bit RGB PNG without alpha.
 
 ## [0.1.12] - Release materials prepared

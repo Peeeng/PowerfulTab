@@ -140,7 +140,7 @@ The side panel uses one global configuration, not per-tab panels. Switching tabs
 
 - Click a row to activate its original tab and window. The list preserves scroll position and does not jump to Recent.
 - Last-visited time shares space with move, duplicate, and close buttons: time is shown normally; actions appear on hover or keyboard focus.
-- Move opens a picker with window IDs, tab counts, and active titles. Tabs move to the end of another normal window in the same browsing mode without switching focus; pinned tabs remain in the destination's pinned area. Destination activity is preserved. Native groups do not transfer across windows. Moving the source window's last tab closes that window in Chrome.
+- Move goes directly to the other window when there is only one eligible destination; multiple destinations open a picker with window IDs, tab counts, and active titles. Tabs move to the end of another normal window in the same browsing mode without switching focus; pinned tabs remain in the destination's pinned area. Destination activity is preserved. Native groups do not transfer across windows. Moving the source window's last tab closes that window in Chrome.
 - Duplicate uses `chrome.tabs.duplicate()`; it creates another tab, not a clipboard copy.
 - Actions are 18px each with 2px gaps: a 58px action area. Move / duplicate hover purple; close hovers red.
 - A focused row supports Enter to activate and Backspace / Delete to close. Internal action key events do not trigger row-level actions.

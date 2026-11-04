@@ -10,6 +10,7 @@ import type {
 import { getCreatedAtMap, getSettings, setSettings } from '../core/storage';
 import { queryAllTabs } from '../core/tabs';
 import { activateTab } from '../core/activate-tab';
+import { getMoveDestinations, moveTabToWindow } from '../core/move-tab';
 import Toolbar from './components/Toolbar';
 import CardGrid from './components/CardGrid';
 import SettingsDialog from '../components/SettingsDialog';
@@ -57,6 +58,7 @@ export default function Dashboard(): JSX.Element {
   const listScrollTop = useRef(0);
   const refreshVersion = useRef(0);
   const currentWindowId = useRef<number>();
+  const movePending = useRef(false);
   const latestActiveTabs = useRef(new Map<number, number>());
   const language = settings?.language ?? 'en';
   const t = useMemo(() => createTranslator(language), [language]);
@@ -244,6 +246,26 @@ export default function Dashboard(): JSX.Element {
     void chrome.tabs.duplicate(tab.id).then(() => refresh()).catch(() => setHint({ key: 'duplicateFailed' }));
   };
 
+  const onMove = async (tab: TabInfo): Promise<void> => {
+    if (movePending.current || movingTab) return;
+    movePending.current = true;
+    listScrollTop.current = listRef.current?.scrollTop ?? 0;
+    try {
+      const destinations = await getMoveDestinations(tab.id);
+      if (destinations.length === 1) {
+        await moveTabToWindow(tab.id, destinations[0].id!);
+        setHint({ key: 'moved' });
+        void refresh();
+      } else {
+        setMovingTab(tab);
+      }
+    } catch (cause) {
+      setHint({ key: 'moveFailed', params: { error: cause instanceof Error ? cause.message : t('retry') } });
+    } finally {
+      movePending.current = false;
+    }
+  };
+
   const onToggleCollapse = (key: string): void => {
     setCollapsed((prev) => {
       const next = new Set(prev);
@@ -302,10 +324,7 @@ export default function Dashboard(): JSX.Element {
           onToggleCollapse={onToggleCollapse}
           onActivate={onActivate}
           onDuplicate={onDuplicate}
-          onMove={(tab) => {
-            listScrollTop.current = listRef.current?.scrollTop ?? 0;
-            setMovingTab(tab);
-          }}
+          onMove={(tab) => void onMove(tab)}
           onClose={onClose}
           onCloseGroup={onCloseGroup}
         />
