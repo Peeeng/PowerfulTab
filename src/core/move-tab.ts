@@ -8,7 +8,7 @@ export async function getMoveDestinations(tabId: number): Promise<chrome.windows
     && window.incognito === source.incognito).sort((a, b) => a.id! - b.id!);
 }
 
-/** Revalidate at execution time and preserve the destination's active tab. */
+/** Revalidate at execution time, then show the moved tab in the destination window. */
 export async function moveTabToWindow(tabId: number, windowId: number): Promise<void> {
   const [source, destination] = await Promise.all([
     chrome.tabs.get(tabId), chrome.windows.get(windowId, { populate: true }),
@@ -17,9 +17,8 @@ export async function moveTabToWindow(tabId: number, windowId: number): Promise<
   if (destination.type !== 'normal' || destination.incognito !== source.incognito) {
     throw new Error('Destination must be a normal window in the same browsing mode');
   }
-  const active = destination.tabs?.find((item) => item.active);
   // Chrome removes the source native group when moving across windows.
   await chrome.tabs.move(tabId, { windowId, index: -1 });
-  const moved = await chrome.tabs.get(tabId);
-  if (moved.active && active?.id != null) await chrome.tabs.update(active.id, { active: true });
+  await chrome.tabs.update(tabId, { active: true });
+  await chrome.windows.update(windowId, { focused: true });
 }

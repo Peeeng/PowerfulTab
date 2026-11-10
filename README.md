@@ -207,7 +207,7 @@ Generate a release ZIP with `npm run release`; output: `release/dist.zip`.
 
 After editing source, run `npm run build`, reload the extension in Chrome, and close / reopen existing side panels or tab-manager pages. Reloading an old extracted ZIP does not load this repository's new `dist/` code.
 
-Normal builds do not update `release/dist.zip`. Regenerate it with `npm run release` when preparing a release. The current prepared version is **0.1.12**, with simplified settings hints; see [release notes](release/11-v0.1.12.md). Screenshot files have since been restored to plain images without decorative card effects; the ZIP is unaffected. Prepared does not mean submitted or published to the store. Screenshot assets still require privacy review before public upload.
+Normal builds do not update `release/dist.zip`. Regenerate it with `npm run release` when preparing a release. The current prepared version is **0.1.13**, with tab-refresh debouncing, delayed post-deletion group refresh, single-destination move skipping, and toolbar layout refinements; see [release notes](release/12-v0.1.13.md). Screenshot files have been restored to plain images without decorative card effects. Prepared does not mean submitted or published to the store. Screenshot assets still require privacy review before public upload.
 
 ## Development
 

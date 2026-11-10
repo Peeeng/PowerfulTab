@@ -240,7 +240,7 @@ test('move destinations exclude the source and other browsing modes', async () =
   assert.equal((await getMoveDestinations(10)).length, 0);
 });
 
-test('moving revalidates the destination and preserves its active tab', async () => {
+test('moving revalidates the destination and shows the moved tab', async () => {
   const calls = [];
   let destination = { type: 'normal', incognito: false, tabs: [{ id: 20, active: true }] };
   let moved = false;
@@ -250,17 +250,20 @@ test('moving revalidates the destination and preserves its active tab', async ()
       move: async (id, options) => { calls.push([id, options.windowId, options.index]); moved = true; },
       update: async (id, options) => calls.push([id, options.active]),
     },
-    windows: { get: async () => destination },
+    windows: {
+      get: async () => destination,
+      update: async (id, options) => calls.push([id, options.focused]),
+    },
   } })('src/core/move-tab.ts');
   await moveTabToWindow(10, 2);
-  assert.deepEqual(calls, [[10, 2, -1], [20, true]]);
+  assert.deepEqual(calls, [[10, 2, -1], [10, true], [2, true]]);
   moved = false;
   destination = { ...destination, incognito: true };
   await assert.rejects(moveTabToWindow(10, 2), /same browsing mode/);
-  assert.equal(calls.length, 2);
+  assert.equal(calls.length, 3);
   destination = { ...destination, incognito: false, type: 'popup' };
   await assert.rejects(moveTabToWindow(10, 2), /normal window/);
-  assert.equal(calls.length, 2);
+  assert.equal(calls.length, 3);
 });
 
 function fakeClock() {

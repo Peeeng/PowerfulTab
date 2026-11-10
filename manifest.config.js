@@ -2,7 +2,7 @@ import { defineManifest } from '@crxjs/vite-plugin';
 export default defineManifest({
     manifest_version: 3,
     name: 'PowerfulTab',
-    version: '0.1.12',
+    version: '0.1.13',
     description: 'Organize tabs by domain or path, remove exact URL duplicates, and search across windows. Local-only. No uploads.',
     homepage_url: 'https://github.com/Peeeng/PowerfulTab',
     action: {
