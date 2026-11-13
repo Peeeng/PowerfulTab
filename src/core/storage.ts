@@ -28,6 +28,7 @@ const DEFAULT_SETTINGS: Settings = {
   maxGroupCount: 15,
   minGroupTabs: 3,
   groupTabSort: 'accessed',
+  recentTabCount: 8,
   searchHistoryCount: 1,
   searchClearTimeoutSeconds: 60,
 };
@@ -64,6 +65,10 @@ export function normalizeSearchClearTimeout(value: number): number {
   return Number.isFinite(value) ? Math.max(0, Math.floor(value)) : 60;
 }
 
+export function normalizeRecentTabCount(value: number): number {
+  return Number.isFinite(value) ? Math.max(1, Math.floor(value)) : 8;
+}
+
 /** 接受 hostname、URL，以及逗号/空格/换行分隔的输入，返回规范化后的 hostname。 */
 export function parseDomainWhitelist(input: string): string[] {
   const hosts = new Set<string>();
@@ -92,6 +97,7 @@ export async function getSettings(): Promise<Settings> {
   settings.groupMode = stored?.groupMode ?? (stored?.dedupeMode === 'path' ? 'path' : 'domain');
   settings.maxGroupCount = normalizeMaxGroupCount(settings.maxGroupCount);
   settings.minGroupTabs = normalizeMinGroupTabs(settings.minGroupTabs);
+  settings.recentTabCount = normalizeRecentTabCount(settings.recentTabCount);
   settings.searchHistoryCount = Number.isFinite(settings.searchHistoryCount) ? Math.max(0, Math.floor(settings.searchHistoryCount)) : 1;
   settings.searchClearTimeoutSeconds = normalizeSearchClearTimeout(settings.searchClearTimeoutSeconds);
   return settings;
@@ -101,6 +107,7 @@ export async function setSettings(patch: Partial<Settings>): Promise<Settings> {
   const next = { ...(await getSettings()), ...patch };
   next.language = normalizeLanguage(next.language);
   next.minGroupTabs = normalizeMinGroupTabs(next.minGroupTabs);
+  next.recentTabCount = normalizeRecentTabCount(next.recentTabCount);
   next.searchClearTimeoutSeconds = normalizeSearchClearTimeout(next.searchClearTimeoutSeconds);
   await chrome.storage.local.set({ [SETTINGS_KEY]: next });
   return next;

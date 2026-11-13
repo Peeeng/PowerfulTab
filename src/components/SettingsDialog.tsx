@@ -1,7 +1,7 @@
 import { cloneElement, useEffect, useId, useRef, useState, type ReactElement } from 'react';
 import type { Settings } from '../core/types';
 import { createTranslator } from '../core/i18n';
-import { normalizeMaxGroupCount, normalizeMinGroupTabs, normalizeSearchClearTimeout, parseDomainWhitelist } from '../core/storage';
+import { normalizeMaxGroupCount, normalizeMinGroupTabs, normalizeRecentTabCount, normalizeSearchClearTimeout, parseDomainWhitelist } from '../core/storage';
 import './settings-dialog.css';
 
 interface Props {
@@ -45,6 +45,7 @@ export default function SettingsDialog({ settings, onSave, onClose }: Props): JS
   const [domainWhitelist, setDomainWhitelist] = useState(settings.domainPathWhitelist.join('\n'));
   const [maxCount, setMaxCount] = useState(String(settings.maxGroupCount));
   const [minTabs, setMinTabs] = useState(String(settings.minGroupTabs));
+  const [recentCount, setRecentCount] = useState(String(settings.recentTabCount ?? 8));
   const [searchCount, setSearchCount] = useState(String(settings.searchHistoryCount));
   const [searchTimeout, setSearchTimeout] = useState(String(settings.searchClearTimeoutSeconds));
   const [saving, setSaving] = useState(false);
@@ -74,6 +75,7 @@ export default function SettingsDialog({ settings, onSave, onClose }: Props): JS
           domainPathWhitelist: parseDomainWhitelist(domainWhitelist),
           maxGroupCount: normalizeMaxGroupCount(Number(maxCount)),
           minGroupTabs: normalizeMinGroupTabs(Number(minTabs)),
+          recentTabCount: normalizeRecentTabCount(Number(recentCount)),
           searchHistoryCount: Math.max(0, Math.floor(Number(searchCount))),
           searchClearTimeoutSeconds: normalizeSearchClearTimeout(Number(searchTimeout)),
         }).then(onClose).catch(() => {
@@ -109,6 +111,9 @@ export default function SettingsDialog({ settings, onSave, onClose }: Props): JS
             <option value="created">{t('created')}</option>
             <option value="accessed">{t('accessed')}</option>
           </select>
+        </SettingField>
+        <SettingField label={t('recentTabCount')}>
+          <input type="number" min="1" step="1" required value={recentCount} onChange={(e) => setRecentCount(e.target.value)} />
         </SettingField>
         <SettingField label={t('searchRetention')} hint={t('searchRetentionHint')}>
           <input type="number" min="0" step="1" required value={searchCount} onChange={(e) => setSearchCount(e.target.value)} />

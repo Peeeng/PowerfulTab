@@ -10,6 +10,19 @@ New work is recorded under Unreleased, then moved to a numbered version when sel
 
 No unreleased changes.
 
+## [0.1.14] - Release materials prepared
+
+### Added
+
+- Configurable Recent tab count in settings, defaulting to eight. Saved values apply across dashboard and side-panel views.
+- Close old tabs from the toolbar with a discrete retention slider (1h, 2h, 6h, 12h, 1d, 2d, 3d, 5d, 7d, 15d), defaulting to 3d, and a count preview before confirming. Cleanup uses the selected windows independently of search, keeps pinned/protected/extension/unknown-visit tabs, and rechecks visits before closing only previewed candidates. Existing Undo is available within Chrome's session-history limits.
+- Multi-select window filters to the left of the tab/group summary below search, using compact window icons with the same stable window colors as active tabs. Window IDs and tab counts appear on hover instead of in the buttons. Defaults to all windows; All resets the selection. Group lists, recent tabs, and counts follow both window selection and search, while preserving existing group membership. Filters remain available for empty search results; closed windows are removed from the selection, falling back to all when none remain.
+
+### Fixed
+
+- Capped Undo session queries at Chrome's supported maximum and included closed-window sessions for bulk closing.
+- Window colors now allocate unused entries from the ten-color palette before repeating, instead of taking the window ID modulo ten. Existing live windows keep their colors during the view session, and closed windows release their colors for reuse. Window filters and active-tab highlights share the allocation.
+
 ## [0.1.13] - Release materials prepared
 
 ### Changed

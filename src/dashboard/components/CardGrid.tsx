@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { LastAccessedMap, TabInfo } from '../../core/types';
 import { applyGroupingRules, groupByDomain, safeHostname } from '../../core/grouping';
 import { matchesTabSearch } from '../../core/search';
+import { assignWindowColors } from '../../core/window-colors';
 import { useStableTabOrder } from './useStableTabOrder';
 import { useDeletionDelayedGroups } from './useDeletionDelayedGroups';
 import { useI18n } from '../../components/I18nProvider';
@@ -14,6 +15,9 @@ interface Props {
   createdAt: LastAccessedMap;
   groupTabSort: 'created' | 'accessed';
   orderRevision: number;
+  recentTabCount: number;
+  selectedWindows: Set<number> | null;
+  onSelectWindows: (windows: Set<number> | null) => void;
   focusedWindowId?: number;
   groupByFirstPath: boolean;
   pathDomainWhitelist: ReadonlySet<string>;
@@ -256,6 +260,9 @@ export default function CardGrid({
   createdAt,
   groupTabSort,
   orderRevision,
+  recentTabCount = 8,
+  selectedWindows = null,
+  onSelectWindows,
   focusedWindowId,
   groupByFirstPath,
   pathDomainWhitelist,
@@ -282,15 +289,24 @@ export default function CardGrid({
     return () => clearTimeout(timer);
   }, [recentActivity]);
   const tabRanks = useStableTabOrder(tabs, groupTabSort === 'created' ? createdAt : lastAccessed, groupTabSort, orderRevision);
+  const previousWindowColors = useRef(new Map<number, number>());
   const windowColors = useMemo(() => {
-    // 窗口 ID 固定映射到 10 色循环；切换、关闭其他窗口或搜索不会改变其颜色。
-    const hues = [210, 30, 145, 270, 330, 185, 60, 115, 245, 0];
-    const windows = [...new Set(tabs.map((tab) => tab.windowId))]
-      .sort((a, b) => a - b);
-    const colors = new Map<number, number>();
-    windows.forEach((id) => colors.set(id, hues[((id % hues.length) + hues.length) % hues.length]!));
+    const colors = assignWindowColors(tabs.map((tab) => tab.windowId), previousWindowColors.current);
+    previousWindowColors.current = colors;
     return colors;
   }, [tabs]);
+  // null means all windows, including windows opened later.
+  const visibleWindows = useMemo(() => {
+    if (!selectedWindows) return null;
+    const live = new Set([...selectedWindows].filter((id) => windowColors.has(id)));
+    return live.size > 0 ? live : null;
+  }, [selectedWindows, windowColors]);
+  const toggleWindow = (id: number): void => {
+    const next = new Set(visibleWindows ?? []);
+    if (next.has(id)) next.delete(id);
+    else next.add(id);
+    onSelectWindows(next.size > 0 ? next : null);
+  };
   const desiredGroups = useMemo(() => applyGroupingRules(
     groupByDomain(tabs, groupByFirstPath, pathDomainWhitelist, domainPathWhitelist), minGroupTabs, maxGroupCount,
   ), [tabs, groupByFirstPath, pathDomainWhitelist, domainPathWhitelist, minGroupTabs, maxGroupCount]);
@@ -300,9 +316,10 @@ export default function CardGrid({
   ]);
   const plannedGroups = useDeletionDelayedGroups(tabs, desiredGroups, groupingRulesKey);
   const groups = useMemo(() => {
-    // 先计算完整分组再筛选，避免搜索让原组因不足最少标签数而归入 other。
+    // 先计算完整分组再筛选，避免搜索或窗口筛选让原组归入 other。
     const displayGroups = plannedGroups
-      .map((g) => ({ ...g, tabs: g.tabs.filter((tab) => matchesTabSearch(tab, searchQuery)) }))
+      .map((g) => ({ ...g, tabs: g.tabs.filter((tab) =>
+        (!visibleWindows || visibleWindows.has(tab.windowId)) && matchesTabSearch(tab, searchQuery)) }))
       .filter((g) => g.tabs.length > 0)
       .map((g) => {
         const sorted = [...g.tabs].sort(
@@ -312,21 +329,18 @@ export default function CardGrid({
         return { ...g, tabs: sorted, hottest };
       });
     return displayGroups;
-  }, [plannedGroups, lastAccessed, tabRanks, searchQuery]);
+  }, [plannedGroups, lastAccessed, tabRanks, searchQuery, visibleWindows]);
 
   const recent = useMemo(() => {
     return [...tabs]
-      .filter((tab) => (recentAccessed[tab.id] ?? 0) > 0 && matchesTabSearch(tab, searchQuery))
+      .filter((tab) => (!visibleWindows || visibleWindows.has(tab.windowId))
+        && (recentAccessed[tab.id] ?? 0) > 0 && matchesTabSearch(tab, searchQuery))
       .sort((a, b) => (recentAccessed[b.id] ?? 0) - (recentAccessed[a.id] ?? 0))
-      .slice(0, 8);
-  }, [tabs, recentAccessed, searchQuery]);
+      .slice(0, recentTabCount);
+  }, [tabs, recentAccessed, searchQuery, visibleWindows, recentTabCount]);
 
   const totalDomains = groups.length;
   const totalTabs = groups.reduce((count, group) => count + group.tabs.length, 0);
-
-  if (searchQuery.trim() && totalTabs === 0) {
-    return <div className="powerful-empty"><span className="powerful-empty__title">{t('noMatches')}</span><span className="powerful-empty__hint">{t('trySearch')}</span></div>;
-  }
 
   if (tabs.length === 0) {
     return (
@@ -352,11 +366,31 @@ export default function CardGrid({
   return (
     <div className="powerful-list">
       <div className="powerful-list__summary">
-        <span>
+        <div className="powerful-window-filter" role="group" aria-label={t('filterWindows')}>
+          <button type="button" aria-pressed={!visibleWindows}
+            title={t('allWindows')} onClick={() => onSelectWindows(null)}>{t('all')}</button>
+          {[...windowColors].map(([id, hue]) => {
+            const label = `${t('windowTabs', { id, count: tabs.filter((tab) => tab.windowId === id).length })}${id === focusedWindowId ? t('currentWindow') : ''}`;
+            return <button key={id} type="button" aria-pressed={!visibleWindows || visibleWindows.has(id)}
+              className="powerful-window-filter__window"
+              style={{ '--window-hue': String(hue) } as React.CSSProperties}
+              aria-label={label} title={label} onClick={() => toggleWindow(id)}>
+              <svg className="powerful-window-filter__icon" width="16" height="14" viewBox="0 0 16 14" fill="none" stroke="currentColor" strokeWidth="1.4" aria-hidden="true">
+                <rect x="1" y="1" width="14" height="12" rx="2" />
+                <path d="M1 4.5h14" />
+              </svg>
+            </button>;
+          })}
+        </div>
+        <span className="powerful-list__counts">
           {t('summary', { tabs: totalTabs, groups: totalDomains })}
         </span>
         <Squiggle />
       </div>
+
+      {searchQuery.trim() && totalTabs === 0 && (
+        <div className="powerful-empty"><span className="powerful-empty__title">{t('noMatches')}</span><span className="powerful-empty__hint">{t('trySearch')}</span></div>
+      )}
 
       {recent.length > 0 && (
         <section

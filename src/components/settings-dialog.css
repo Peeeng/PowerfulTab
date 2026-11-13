@@ -71,3 +71,10 @@
 .powerful-move__windows button:hover { border-color: var(--accent); }
 .powerful-move button:disabled { opacity: 0.5; cursor: default; }
 .powerful-move__window-title { color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; font-size: 12px; }
+.powerful-cleanup__period { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.powerful-cleanup__period output { color: var(--accent); font-size: 20px; font-weight: 700; }
+.powerful-cleanup input[type='range'] { box-sizing: border-box; width: 100%; margin: 16px 0 4px; accent-color: var(--accent); cursor: pointer; }
+.powerful-cleanup__ticks { display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); margin-bottom: 16px; color: var(--muted); font-size: 10px; text-align: center; }
+.powerful-cleanup__ticks [data-selected='1'] { color: var(--accent); font-weight: 700; }
+.powerful-cleanup button:disabled { opacity: 0.5; cursor: default; }
+.powerful-cleanup button[type='submit'] { border-color: var(--danger); color: var(--danger); }

@@ -7,15 +7,17 @@ import type {
   TabInfo,
   Theme,
 } from '../core/types';
-import { getCreatedAtMap, getSettings, setSettings } from '../core/storage';
+import { getCreatedAtMap, getLastAccessedMap, getSettings, getWhitelist, setSettings } from '../core/storage';
 import { queryAllTabs } from '../core/tabs';
 import { activateTab } from '../core/activate-tab';
+import { selectStaleTabIds } from '../core/cleanup';
 import { getMoveDestinations, moveTabToWindow } from '../core/move-tab';
 import { createTabUpdateRefresh } from './tab-update-refresh';
 import Toolbar from './components/Toolbar';
 import CardGrid from './components/CardGrid';
 import SettingsDialog from '../components/SettingsDialog';
 import MoveTabDialog from '../components/MoveTabDialog';
+import CleanupDialog from '../components/CleanupDialog';
 import TabSearch from './components/TabSearch';
 import { I18nProvider } from '../components/I18nProvider';
 import { createTranslator, type LocalizedMessage } from '../core/i18n';
@@ -53,6 +55,9 @@ export default function Dashboard(): JSX.Element {
   const [movingTab, setMovingTab] = useState<TabInfo | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [orderRevision, setOrderRevision] = useState(0);
+  const [selectedWindows, setSelectedWindows] = useState<Set<number> | null>(null);
+  // undefined = closed; null = all windows. Freeze the scope while confirming.
+  const [cleanupScope, setCleanupScope] = useState<Set<number> | null | undefined>(undefined);
 
   const undoTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const listRef = useRef<HTMLElement>(null);
@@ -167,6 +172,20 @@ export default function Dashboard(): JSX.Element {
 
   const tabIds = useMemo(() => new Set(tabs.map((t) => t.id)), [tabs]);
   void tabIds;
+  const visibleWindows = useMemo(() => {
+    if (!selectedWindows) return null;
+    const liveIds = new Set(tabs.map((tab) => tab.windowId));
+    const live = new Set([...selectedWindows].filter((id) => liveIds.has(id)));
+    return live.size > 0 ? live : null;
+  }, [selectedWindows, tabs]);
+  useEffect(() => {
+    setSelectedWindows((previous) => {
+      if (!previous) return previous;
+      const liveIds = new Set(tabs.map((tab) => tab.windowId));
+      const live = new Set([...previous].filter((id) => liveIds.has(id)));
+      return live.size === previous.size ? previous : live.size > 0 ? live : null;
+    });
+  }, [tabs]);
 
   if (!settings) {
     return <div className="powerful-dash powerful-dash--loading">{t('loading')}</div>;
@@ -190,9 +209,9 @@ export default function Dashboard(): JSX.Element {
     await new Promise((r) => setTimeout(r, 60));
     let sessionIds: string[] = [];
     try {
-      const sessions = await chrome.sessions.getRecentlyClosed({ maxResults: ids.length });
+      const sessions = await chrome.sessions.getRecentlyClosed({ maxResults: Math.min(ids.length, chrome.sessions.MAX_SESSION_RESULTS ?? 25) });
       sessionIds = sessions
-        .map((s) => s.tab?.sessionId)
+        .map((s) => s.tab?.sessionId ?? s.window?.sessionId)
         .filter((x): x is string => typeof x === 'string')
         .slice(0, ids.length);
     } catch {
@@ -200,6 +219,23 @@ export default function Dashboard(): JSX.Element {
     }
     setUndo({ count: ids.length, sessionIds });
     void refresh();
+  };
+
+  const onCleanup = async (previewIds: number[], cutoff: number): Promise<number> => {
+    setBusy(true);
+    try {
+      const [liveTabs, visits, whitelist] = await Promise.all([
+        queryAllTabs(), getLastAccessedMap(), getWhitelist(),
+      ]);
+      const preview = new Set(previewIds);
+      const ids = selectStaleTabIds(liveTabs, visits, cutoff, cleanupScope ?? null, new Set(whitelist.urls))
+        .filter((id) => preview.has(id));
+      await closeWithUndo(ids);
+      setHint({ key: 'cleanupDone', params: { count: ids.length } });
+      return ids.length;
+    } finally {
+      setBusy(false);
+    }
   };
 
   const restoreUndo = async (): Promise<void> => {
@@ -299,9 +335,12 @@ export default function Dashboard(): JSX.Element {
         onOrganize={onOrganize}
         onDedupe={onDedupe}
         onSettings={() => setSettingsOpen(true)}
+        onCleanup={() => setCleanupScope(visibleWindows ? new Set(visibleWindows) : null)}
       />
 
       {settingsOpen && <SettingsDialog settings={settings} onSave={apply} onClose={() => setSettingsOpen(false)} />}
+      {cleanupScope !== undefined && <CleanupDialog tabs={tabs} lastAccessed={lastAccessed}
+        windowIds={cleanupScope} onConfirm={onCleanup} onClose={() => setCleanupScope(undefined)} />}
       {movingTab && <MoveTabDialog tab={movingTab} onClose={() => setMovingTab(null)} onMoved={() => {
         setHint({ key: 'moved' });
         void refresh();
@@ -318,6 +357,9 @@ export default function Dashboard(): JSX.Element {
           createdAt={createdAt}
           groupTabSort={settings.groupTabSort}
           orderRevision={orderRevision}
+          recentTabCount={settings.recentTabCount}
+          selectedWindows={selectedWindows}
+          onSelectWindows={setSelectedWindows}
           focusedWindowId={focusedWindowId}
           groupByFirstPath={settings.groupMode === 'path'}
           pathDomainWhitelist={pathDomainWhitelist}

@@ -10,6 +10,8 @@ export interface TabInfo {
   active: boolean;
   groupId: number;
   index: number;
+  /** Chrome 提供的真实最近访问时间，可用于清理前重新核对。 */
+  lastAccessed?: number;
 }
 
 export interface DomainGroup {
@@ -41,6 +43,7 @@ export interface Settings {
   /** 预分组达到此标签数量才独立成组，否则归入 other。 */
   minGroupTabs: number;
   groupTabSort: 'created' | 'accessed';
+  recentTabCount: number;
   searchHistoryCount: number;
   /** 最后一次输入后自动清空搜索的秒数；0 表示关闭。 */
   searchClearTimeoutSeconds: number;

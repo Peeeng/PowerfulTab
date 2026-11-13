@@ -48,7 +48,9 @@ This is a promotional image, not a product screenshot. Capture current UI screen
 | 🕘 Search history | Default 1 saved search; configurable, including 0 |
 | Search clear delay | Default 60 seconds after the last input; 0 disables automatic clearing |
 | Tab actions | Activate, move to another window, duplicate, close a tab, or close a group |
-| 🎨 Window colors | Color stripe per window; matching highlights for active tabs |
+| 🎨 Window filters | Multi-select colored window icons below search; All resets the filter |
+| Recent tab count | Default 8; configurable in Settings |
+| Close old tabs | Preview and close tabs older than a selected visit-time threshold; default 3d |
 | ⚙️ Settings | Compact labels with small hover hints; Save applies, Cancel / Esc / outside click discards |
 | 🌐 Language | English by default; Simplified Chinese also available |
 | 🌗 Theme | Light / dark, from the toolbar or Settings |
@@ -102,7 +104,7 @@ Last-visited timestamps come from activation, creation, and URL-change events, n
 
 ## Settings
 
-Open Settings using the toolbar gear. Labels are bold; input and hint text use normal weight. Settings hints use a 12px "?" at the label's upper-right corner, except Language and Theme, which have no descriptions. Hover or click to view rules; hints do not repeat default values because current values are visible in controls. The marker cannot take focus, and descriptions are associated with their input controls for screen readers.
+Open Settings using the toolbar gear. Labels are bold; input and hint text use normal weight. Settings with descriptions use a 12px "?" at the label's upper-right corner. Hover or click to view rules; hints do not repeat default values because current values are visible in controls. The marker cannot take focus, and descriptions are associated with their input controls for screen readers.
 
 | Setting | Default | Rule |
 | --- | --- | --- |
@@ -113,6 +115,7 @@ Open Settings using the toolbar gear. Labels are bold; input and hint text use n
 | Minimum tabs | 3 | Positive integer; smaller groups go to `other` |
 | Maximum groups | 15 | Positive integer, always enabled, includes `other` |
 | Tab order | Last visited | Created: oldest first; Last visited: newest first |
+| Recent tab count | 8 | Positive integer; changes the shortcut list without closing tabs |
 | Search history | 1 | Nonnegative integer; 0 disables retention |
 | Search clear delay | 60 seconds | Restart on input; 0 disables automatic clearing |
 | Theme | Light | Light / Dark |
@@ -130,7 +133,7 @@ There is an input field, not a separate search button. Filtering is immediate, c
 - Conversion runs locally with a bundled dictionary and bounded cache. Groups and Recent use the same matcher.
 - History is recorded after roughly 500ms of inactivity, on blur, or on Enter. Latest first; case-insensitive duplicates move to the front.
 - Clicking / focusing the input opens history. Select with a mouse or arrow keys + Enter; Esc closes the dropdown. Search history = 0 hides it.
-- Typing or choosing history restarts Search clear delay. Expiry clears the query and restores all tabs without deleting history, focusing the input, or scrolling. IME composition pauses clearing until composition ends. Saving a new timeout restarts the countdown.
+- Typing or choosing history restarts Search clear delay. Expiry clears the query while retaining the selected windows, without deleting history, focusing the input, or scrolling. IME composition pauses clearing until composition ends. Saving a new timeout restarts the countdown.
 - Clearing a query does not change native tabs / groups.
 - Initial opening or an explicit extension-icon opening attempts to focus search, with brief mount retries. Ordinary tab actions do not repeatedly steal focus. Switching UI language does not remount search or reset its timer / query.
 
@@ -140,7 +143,7 @@ The side panel uses one global configuration, not per-tab panels. Switching tabs
 
 - Click a row to activate its original tab and window. The list preserves scroll position and does not jump to Recent.
 - Last-visited time shares space with move, duplicate, and close buttons: time is shown normally; actions appear on hover or keyboard focus.
-- Move goes directly to the other window when there is only one eligible destination; multiple destinations open a picker with window IDs, tab counts, and active titles. Tabs move to the end of another normal window in the same browsing mode without switching focus; pinned tabs remain in the destination's pinned area. Destination activity is preserved. Native groups do not transfer across windows. Moving the source window's last tab closes that window in Chrome.
+- Move goes directly to the other window when there is only one eligible destination; multiple destinations open a picker with window IDs, tab counts, and active titles. Tabs move to the end of another normal window in the same browsing mode, then the destination focuses and activates the moved tab; pinned tabs remain in the destination's pinned area. Native groups do not transfer across windows. Moving the source window's last tab closes that window in Chrome.
 - Duplicate uses `chrome.tabs.duplicate()`; it creates another tab, not a clipboard copy.
 - Actions are 18px each with 2px gaps: a 58px action area. Move / duplicate hover purple; close hovers red.
 - A focused row supports Enter to activate and Backspace / Delete to close. Internal action key events do not trigger row-level actions.
@@ -148,11 +151,19 @@ The side panel uses one global configuration, not per-tab panels. Switching tabs
 
 All rows have a **5px window-color stripe**, full row height and flush with active highlights; each row has 1px external spacing above / below.
 
-Window IDs map to a fixed 10-color rotation: blue, orange, green, purple, pink, cyan, yellow, yellow-green, indigo, red (`windowId % 10`). Searching or switching / closing other windows does not recolor existing ones; IDs with the same remainder reuse colors.
+Windows use a 10-color palette: blue, orange, green, purple, pink, cyan, yellow, yellow-green, indigo, red. New windows take unused colors before any color repeats. Existing live windows keep their colors during the view session; closed windows release their colors for reuse. Colored window icons to the left of the summary support multiple selection; All shows every window. Window IDs and tab counts appear on hover. Search, Recent, group lists, and totals follow the selected windows, with filters still available when no search matches exist.
 
 Active tabs in every window have a pale matching background and window badge. The focused window's active tab gets an additional outline; dark mode uses subdued dark backgrounds.
 
 New tabs inherit the opener's native group, or the same window's recent active tab when no opener is known. This includes `other`. Existing groups and pinned tabs are not overridden; no cross-window inheritance. URL-based classification happens on the next Organize action.
+
+## Close old tabs
+
+Click the clock / close icon in the toolbar to open the retention slider. Choose 1h, 2h, 6h, 12h, 1d, 2d, 3d, 5d, 7d, or 15d; each opening starts at 3d. Review the count, then confirm to close tabs last visited before the selected cutoff.
+
+Cleanup applies to the selected windows, independently of search keywords. It retains pinned tabs, protected URLs, extension pages, and tabs with unknown visit times. Visits and protection are checked again before closing only tabs included in the preview. Recent tab count only changes the shortcut list; it never closes tabs.
+
+A 5-second Undo is offered when Chrome provides restorable tab or window sessions. Chrome retains a limited number of closed sessions, so a large batch may be only partly recoverable; the dialog indicates this when the preview exceeds that limit.
 
 ## Rendering logic
 
@@ -162,9 +173,9 @@ Dashboard and CardGrid power both the full tab manager and side panel:
 2. Compute planned groups from the full tab set and apply minimum / maximum rules.
 3. Update group order by count immediately; the old 30-second group-order delay is removed.
 4. Add / remove groups as needed, with `other` last.
-5. Filter after grouping, so a search cannot push a valid group into `other` due to too few matches.
+5. Apply search and window filters after grouping, so filtering cannot push a valid group into `other` due to too few matches.
 6. Order members by the selected setting; display counts, recent activity, relative times, and actions.
-7. Recent shows at most 8 matching tabs by visit time. Timestamp-driven membership / ordering is debounced 500ms; search, removal, and active highlighting update immediately. Main-list reordering follows the selected setting with a 3-second debounce. Mere visits do not reorder Created mode; ordinary refresh / search / language changes do not reset ordering timers. New tabs append initially; closed tabs disappear immediately. Reloading, explicit Organize, or changing sort mode applies ordering immediately. List-order delays never move native Chrome tabs. Recent is a shortcut view of the same tabs, not part of group totals.
+7. Recent shows up to the configured number of matching tabs by visit time (8 by default, adjustable in Settings). Timestamp-driven membership / ordering is debounced 500ms; search, removal, and active highlighting update immediately. Main-list reordering follows the selected setting with a 3-second debounce. Mere visits do not reorder Created mode; ordinary refresh / search / language changes do not reset ordering timers. New tabs append initially; closed tabs disappear immediately. Reloading, explicit Organize, or changing sort mode applies ordering immediately. List-order delays never move native Chrome tabs. Recent is a shortcut view of the same tabs, not part of group totals.
 8. Search temporarily expands matching groups; clearing restores saved collapse state. No matches shows an empty state.
 
 Creation, removal, moves, and settings changes trigger immediate queries; title, favicon, loading-status, and other presentation updates debounce queries by 500ms. URL, pinning, and native group changes remain immediate. Activation, focus, and timestamp changes update locally. After deletion, closed rows and counts update immediately, but displayed group membership and group order wait until 3s after the last deletion. Ordinary refreshes, activation, and search do not restart this delay; new tabs, navigation, moves, grouping-rule changes, and explicit Organize still apply grouping immediately. A 30-second fallback refresh updates relative times; it is not a sort delay and does not auto-organize native tabs.
@@ -207,7 +218,7 @@ Generate a release ZIP with `npm run release`; output: `release/dist.zip`.
 
 After editing source, run `npm run build`, reload the extension in Chrome, and close / reopen existing side panels or tab-manager pages. Reloading an old extracted ZIP does not load this repository's new `dist/` code.
 
-Normal builds do not update `release/dist.zip`. Regenerate it with `npm run release` when preparing a release. The current prepared version is **0.1.13**, with tab-refresh debouncing, delayed post-deletion group refresh, single-destination move skipping, and toolbar layout refinements; see [release notes](release/12-v0.1.13.md). Screenshot files have been restored to plain images without decorative card effects. Prepared does not mean submitted or published to the store. Screenshot assets still require privacy review before public upload.
+Normal builds do not update `release/dist.zip`. Regenerate it with `npm run release` when preparing a release. The current prepared version is **0.1.14**, with multi-select colored window filters, configurable Recent tab count, and previewed visit-time cleanup; see [release notes](release/13-v0.1.14.md). Screenshot files have been restored to plain images without decorative card effects. Prepared does not mean submitted or published to the store. Screenshot assets still require privacy review before public upload.
 
 ## Development
 

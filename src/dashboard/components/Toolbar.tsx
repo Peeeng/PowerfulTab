@@ -13,6 +13,7 @@ interface Props {
   onDedupe: () => void;
   onSettings: () => void;
   onOrganize: () => void;
+  onCleanup: () => void;
 }
 
 /** A cheerful floppy-eared puppy resting on the toolbar edge. */
@@ -61,6 +62,7 @@ export default function Toolbar(props: Props): JSX.Element {
     onDedupe,
     onSettings,
     onOrganize,
+    onCleanup,
   } = props;
 
   // 3D parallax hover：外层胶囊做 perspective rotateX/Y；内层内容做反向平移产生视差
@@ -177,6 +179,11 @@ export default function Toolbar(props: Props): JSX.Element {
           aria-label={t('dedupe')}
         >
           <DedupeIcon />
+        </button>
+        <button className="powerful-toolbar__icon-btn" onClick={onCleanup} disabled={busy} aria-label={t('cleanupTabs')} title={t('cleanupTabs')}>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <circle cx="10" cy="10" r="7" /><path d="M10 6v4l3 2M16 16l5 5M17 21l4-4" />
+          </svg>
         </button>
         <button className="powerful-toolbar__icon-btn" onClick={onSettings} disabled={busy} aria-label={t('settings')} title={t('settings')}><SettingsIcon /></button>
         <button

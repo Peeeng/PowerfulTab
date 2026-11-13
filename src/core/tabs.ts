@@ -21,6 +21,7 @@ export function toTabInfo(t: chrome.tabs.Tab): TabInfo | null {
     active: t.active,
     groupId: t.groupId ?? -1,
     index: t.index,
+    lastAccessed: t.lastAccessed,
   };
 }
 
