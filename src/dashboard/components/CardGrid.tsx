@@ -19,6 +19,7 @@ interface Props {
   selectedWindows: Set<number> | null;
   onSelectWindows: (windows: Set<number> | null) => void;
   focusedWindowId?: number;
+  currentWindowId?: number;
   groupByFirstPath: boolean;
   pathDomainWhitelist: ReadonlySet<string>;
   domainPathWhitelist: ReadonlySet<string>;
@@ -264,6 +265,7 @@ export default function CardGrid({
   selectedWindows = null,
   onSelectWindows,
   focusedWindowId,
+  currentWindowId,
   groupByFirstPath,
   pathDomainWhitelist,
   domainPathWhitelist,
@@ -370,11 +372,13 @@ export default function CardGrid({
           <button type="button" aria-pressed={!visibleWindows}
             title={t('allWindows')} onClick={() => onSelectWindows(null)}>{t('all')}</button>
           {[...windowColors].map(([id, hue]) => {
-            const label = `${t('windowTabs', { id, count: tabs.filter((tab) => tab.windowId === id).length })}${id === focusedWindowId ? t('currentWindow') : ''}`;
+            const isCurrentWindow = id === currentWindowId;
+            const label = `${t('windowTabs', { id, count: tabs.filter((tab) => tab.windowId === id).length })}${isCurrentWindow ? t('currentWindow') : ''}`;
             return <button key={id} type="button" aria-pressed={!visibleWindows || visibleWindows.has(id)}
               className="powerful-window-filter__window"
               style={{ '--window-hue': String(hue) } as React.CSSProperties}
               aria-label={label} title={label} onClick={() => toggleWindow(id)}>
+              {isCurrentWindow && <span className="powerful-window-filter__current" aria-hidden="true" />}
               <svg className="powerful-window-filter__icon" width="16" height="14" viewBox="0 0 16 14" fill="none" stroke="currentColor" strokeWidth="1.4" aria-hidden="true">
                 <rect x="1" y="1" width="14" height="12" rx="2" />
                 <path d="M1 4.5h14" />

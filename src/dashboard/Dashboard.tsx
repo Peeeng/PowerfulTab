@@ -47,6 +47,7 @@ export default function Dashboard(): JSX.Element {
   const [lastAccessed, setLastAccessed] = useState<LastAccessedMap>({});
   const [createdAt, setCreatedAt] = useState<LastAccessedMap>({});
   const [focusedWindowId, setFocusedWindowId] = useState<number>();
+  const [currentWindowId, setCurrentWindowId] = useState<number>();
   const [busy, setBusy] = useState(false);
   const [hint, setHint] = useState<LocalizedMessage | null>(null);
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
@@ -63,7 +64,6 @@ export default function Dashboard(): JSX.Element {
   const listRef = useRef<HTMLElement>(null);
   const listScrollTop = useRef(0);
   const refreshVersion = useRef(0);
-  const currentWindowId = useRef<number>();
   const movePending = useRef(false);
   const latestActiveTabs = useRef(new Map<number, number>());
   const language = settings?.language ?? 'en';
@@ -102,7 +102,7 @@ export default function Dashboard(): JSX.Element {
   };
 
   useEffect(() => {
-    void chrome.windows.getCurrent().then((window) => { currentWindowId.current = window.id; });
+    void chrome.windows.getCurrent().then((window) => { setCurrentWindowId(window.id); });
     void refresh();
     const updateRefresh = createTabUpdateRefresh(() => { void refresh(); });
     const handler = (): void => {
@@ -278,7 +278,7 @@ export default function Dashboard(): JSX.Element {
 
   const onActivate = (tab: TabInfo): void => {
     listScrollTop.current = listRef.current?.scrollTop ?? 0;
-    void activateTab(tab, currentWindowId.current ?? focusedWindowId)
+    void activateTab(tab, currentWindowId ?? focusedWindowId)
       .catch(() => setHint({ key: 'activateFailed' }));
   };
 
@@ -361,6 +361,7 @@ export default function Dashboard(): JSX.Element {
           selectedWindows={selectedWindows}
           onSelectWindows={setSelectedWindows}
           focusedWindowId={focusedWindowId}
+          currentWindowId={currentWindowId}
           groupByFirstPath={settings.groupMode === 'path'}
           pathDomainWhitelist={pathDomainWhitelist}
           domainPathWhitelist={domainPathWhitelist}

@@ -407,6 +407,18 @@ html, body, #root {
 }
 .powerful-dash.powerful-dark .powerful-window-filter__window[aria-pressed='true'] { background: hsl(var(--window-hue) 45% 24%); color: #fff; }
 .powerful-window-filter__icon { flex-shrink: 0; color: hsl(var(--window-hue) 65% 40%); }
+.powerful-window-filter__window { position: relative; }
+.powerful-window-filter__current {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #22c55e;
+  box-shadow: 0 0 0 1px var(--surface);
+  pointer-events: none;
+}
 .powerful-dash.powerful-dark .powerful-window-filter__icon { color: hsl(var(--window-hue) 75% 70%); }
 .powerful-window-filter button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .powerful-list__summary .powerful-doodle {

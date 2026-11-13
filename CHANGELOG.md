@@ -10,6 +10,12 @@ New work is recorded under Unreleased, then moved to a numbered version when sel
 
 No unreleased changes.
 
+## [0.1.16] - Release materials prepared
+
+### Added
+
+- A green dot at the upper-left of the window filter button marks the window hosting the extension view. The marker and current-window tooltip follow the hosting window rather than browser focus, in both dashboard and side-panel views.
+
 ## [0.1.15] - Release materials prepared
 
 ### Changed

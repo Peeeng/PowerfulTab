@@ -78,4 +78,4 @@ Productivity
 
 Tab manager · Tab organizer · Deduplicate · Side panel · Search
 
-This listing matches the prepared **0.1.15** package. Save it as the English primary listing when uploading that package; do not advertise these features against an older build.
+This listing matches the prepared **0.1.16** package. Save it as the English primary listing when uploading that package; do not advertise these features against an older build.
