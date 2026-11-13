@@ -10,6 +10,12 @@ New work is recorded under Unreleased, then moved to a numbered version when sel
 
 No unreleased changes.
 
+## [0.1.15] - Release materials prepared
+
+### Changed
+
+- Removed the optional manifest homepage URL, so Chrome no longer uses the GitHub repository as the extension website. Chrome may fall back to the store listing for store-installed versions.
+
 ## [0.1.14] - Release materials prepared
 
 ### Added
